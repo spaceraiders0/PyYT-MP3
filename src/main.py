@@ -1,6 +1,7 @@
 # main.py
 # created by: spaceraiders
 # contact: spaceraiders@protonmail.com
+# description: A small script to download Youtube videos.
 
 from pytube import YouTube
 from argparse import ArgumentParser

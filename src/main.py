@@ -85,7 +85,6 @@ for url in urls:
         except ValueError:
             pass
         yt_obj = YouTube(url)
-       # print(f"Downloading {yt_obj.title}", end="\r\n")
         stream = yt_obj.streams.first()
         path_to_video = stream.download(output_path=output)
         root_path = os.path.abspath(os.path.splitext(path_to_video)[0])

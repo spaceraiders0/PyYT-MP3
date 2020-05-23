@@ -4,27 +4,31 @@
 # description: contains functions and other things used by src/main.
 
 import os
+import requests
 from pathlib import Path
 
-root_dir = Path("../..")
+ROOT_DIR = Path("../..")
+FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20200522-38490cb-win64-static.zip"
 
+def recursive_dir_get(match, attempts=10):
+    """
+        Will return the path of a parent directory denoted by
+        match.
+    """
 
-# try to finish this tomorrow?
-def recursive_dir_get(name):
-    found_dir = False
-    path = Path("")
+    total_attempts = 0
 
-    while not found_dir:
-        new_path = path / Path("..")
-        parent_name = os.path.basename(os.path.abspath(path))  
-        #print(new_path)
-        print(parent_name)
-        break
-        if parent_name == name:
-            found_dir = True
-            print(os.path.abspath(path))
-        else:
-            path /= Path("../")
+    while total_attempts <= attempts:
+        current_directory = os.path.basename(os.path.abspath("."))
+
+        if current_directory == match:
+            os.chdir(__file__)
+            return os.abspath(current_directory)
+
+        os.chdir("..")
+        total_attempts += 1
+    else:
+        return None
 
 def validate_ffmpeg_install():
     """

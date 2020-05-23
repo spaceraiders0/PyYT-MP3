@@ -16,15 +16,11 @@ ffmpeg = os.path.abspath(toPath("../ffmpeg/bin/ffmpeg.exe"))
 parser = ArgumentParser()
 
 
-funcs.recursive_dir_get("src")
-
-
 def next_prog(max_num, scale):
     percent = round(scale/max_num*100)
     prog_char, none_char = "=", " "
     total_prog = f"<{prog_char * percent}{none_char * (100-percent)}>"
     print(total_prog, end="\r")
-
 
 
 # Starts up the argument parser for cuztomized functionality

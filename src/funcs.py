@@ -6,9 +6,25 @@
 import os
 from pathlib import Path
 
-root_dir = os.path.abspath(Path("../.."))
-print(root_dir)
+root_dir = Path("../..")
 
+
+# try to finish this tomorrow?
+def recursive_dir_get(name):
+    found_dir = False
+    path = Path("")
+
+    while not found_dir:
+        new_path = path / Path("..")
+        parent_name = os.path.basename(os.path.abspath(path))  
+        #print(new_path)
+        print(parent_name)
+        break
+        if parent_name == name:
+            found_dir = True
+            print(os.path.abspath(path))
+        else:
+            path /= Path("../")
 
 def validate_ffmpeg_install():
     """
@@ -18,4 +34,4 @@ def validate_ffmpeg_install():
     """
 
     if os.path.isdir(Path("")):
-        pass
+        print("jkjj")

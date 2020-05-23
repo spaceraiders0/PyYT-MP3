@@ -75,7 +75,7 @@ elif args.from_url:
 # add option to convert to mp3, and whether or not to keep both the mp4 and mp3
 # add a settings menu
 
-#print("Downloading N/A", end="\r")
+# print("Downloading N/A", end="\r")
 next_prog(len(urls), 0)
 
 for url in urls:

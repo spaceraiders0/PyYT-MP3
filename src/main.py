@@ -7,6 +7,7 @@ from pytube import YouTube
 from argparse import ArgumentParser
 from pathlib import Path as toPath
 import os
+import funcs
 
 urls = []
 output = toPath("../data/output")
@@ -14,7 +15,7 @@ input_folder = toPath("../data/input")
 ffmpeg = os.path.abspath(toPath("../ffmpeg/bin/ffmpeg.exe"))
 parser = ArgumentParser()
 
-
+funcs.vali
 
 # Starts up the argument parser for cuztomized functionality
 parser.add_argument("--from-input", help="""flag to take URLs from the input

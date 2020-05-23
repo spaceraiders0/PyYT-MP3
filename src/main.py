@@ -7,6 +7,7 @@ from pytube import YouTube
 from argparse import ArgumentParser
 from pathlib import Path as toPath
 import os
+import funcs
 
 urls = []
 output = toPath("../data/output")

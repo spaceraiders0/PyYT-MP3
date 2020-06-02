@@ -3,11 +3,17 @@
 # contact: spaceraiders@protonmail.com
 # description: A small script to download Youtube videos.
 
-from pytube import YouTube
+# TODO
+# > Document more of the functions in funcs.py
+# > Finish validating whether or not FFmpeg is installed on this machine.
+# Maybe make it check if it's in the path?
+# > It would be cool to have this be put into the PATH of the machine it's
+# being ran on, but support would be required for Linux too.
+
+from pytube import YouTube, Playlist
 from argparse import ArgumentParser
 from pathlib import Path as toPath
-import os
-import funcs
+import os, funcs, validators
 
 urls = []
 output = toPath("../data/output")
@@ -15,26 +21,51 @@ input_folder = toPath("../data/input")
 ffmpeg = os.path.abspath(toPath("../ffmpeg/bin/ffmpeg.exe"))
 parser = ArgumentParser()
 
-
-def next_prog(max_num, scale):
-    percent = round(scale/max_num*100)
-    prog_char, none_char = "=", " "
-    total_prog = f"<{prog_char * percent}{none_char * (100-percent)}>"
-    print(total_prog, end="\r")
-
-
-# Starts up the argument parser for cuztomized functionality
-parser.add_argument("--from-input", help="""flag to take URLs from the input
-                    folder.""", action="store_true")
-parser.add_argument("--from-url", help="""flag to download from a URL.""")
+# Starts up the argument parser for customized functionality
+parser.add_argument("source", help="""specifies the source where videos are located.
+                    further information on what input can be is located in the
+                    README.""")
 parser.add_argument("--output", help="""specifies a custom directory to dump
                     output to""")
-parser.add_argument("--input", help="""specifies a custom directory to extract
-                    URls from. compliments --from-input""")
 
 args = parser.parse_args()
 
-# Assigns new folders to input, or output. Validates the path aswell.
+if args.source:
+    text_files = []
+    source = args.source
+
+    # check types for all valid inputs
+    if os.path.isdir(source):
+        # RECURSIVELY get all text files and append their paths to text_files
+
+        for dirpath, _, filenames in os.walk(source):
+            for filename in filenames:
+                text_files.append(toPath(f"{dirpath}/{filename}"))
+
+    # assuming it's a URL, validate it, and extract the url, or all the
+    # videos in the provided playlist's.
+    elif funcs.validate_url(source):
+        print("Parsing URL.")
+        try:
+            extracted_urls = Playlist(source)
+            urls = [*extracted_urls]
+        except KeyError:
+            YouTube(source)
+            urls = [source]
+
+    elif os.path.isfile(source):
+        text_files.append(source)
+
+    else:
+        print("Invalid input.")
+
+    # go through all defined text files and get their urls
+    for textfile in text_files:
+        with open(textfile, "r") as url_list:
+            for url in url_list.readlines():
+                funcs.validate_url(url, insertion=urls)
+
+# Assigns new folders to input, or output. Validates the path as well.
 if args.output:
     new_path = toPath(args.output)
 
@@ -43,32 +74,8 @@ if args.output:
     else:
         print(f"Invalid output folder! You gave: {new_path}")
 
-if args.input:
-    new_path = toPath(args.input)
 
-    if os.path.exists(new_path):
-        input = new_path
-    else:
-        print(f"Invalid input folder! You gave {new_path}")
-
-# This appends or collects all URLs from a source. EWither the stdin, or files.
-if args.from_input:
-    # This is RECURSIVE. It will go through ALL FOLDERS in the directory.
-
-    # Extract URLs from text files
-    for dirpath, _, filenames in os.walk(input_folder):
-        for filename in filenames:
-            file_to_open = toPath(dirpath + f"/{filename}")
-
-            with open(file_to_open, "r") as url_container:
-                extracted_urls = url_container.readlines()
-
-                for url in extracted_urls:
-                    urls.append(url.strip("\n"))
-elif args.from_url:
-    urls.append(args.from_url)
-
-# Download the videos from the URL list, then conver them to an MP3
+# Download the videos from the URL list, then convert them to an MP3
 # Clean this up in the morning!
 # Give different text files their own folders in output maybe?
 # add playlists tomorrow too
@@ -77,21 +84,18 @@ elif args.from_url:
 # add a settings menu
 
 # print("Downloading N/A", end="\r")
-next_prog(len(urls), 0)
+#next_prog(len(urls), 0)
 
 for url in urls:
     try:
-        try:
-            url_index = urls.index(url)
-        except ValueError:
-            pass
         yt_obj = YouTube(url)
         stream = yt_obj.streams.first()
         path_to_video = stream.download(output_path=output)
         root_path = os.path.abspath(os.path.splitext(path_to_video)[0])
+        print(root_path)
 
-        os.system(f"""{str(ffmpeg)} -i \"{root_path}.mp4\" \"{root_path}.mp3\" -loglevel warning""")
-        next_prog(len(urls), url_index+1)
+        os.system(f"""{str(ffmpeg)} -i \"{root_path}.mp4\" \"{root_path}.mp3\" -loglevel        warning""")
+
         os.remove(path_to_video)
     except KeyError:
         pass

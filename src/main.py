@@ -4,16 +4,22 @@
 # description: A small script to download Youtube videos.
 
 # TODO
-# > Document more of the functions in funcs.py
-# > Finish validating whether or not FFmpeg is installed on this machine.
+# Document more of the functions in funcs.py
+#
+# Finish validating whether or not FFmpeg is installed on this machine.
 # Maybe make it check if it's in the path?
-# > It would be cool to have this be put into the PATH of the machine it's
+#
+# It would be cool to have this be put into the PATH of the machine it's
 # being ran on, but support would be required for Linux too.
+##
+# Give different text files their own folders in output maybe?
 
 from pytube import YouTube, Playlist
 from argparse import ArgumentParser
 from pathlib import Path as toPath
-import os, funcs, validators
+from bs4 import BeautifulSoup
+import os, funcs, validators, requests
+import pytube.exceptions as pyt_excep
 
 urls = []
 output = toPath("../data/output")
@@ -27,6 +33,8 @@ parser.add_argument("source", help="""specifies the source where videos are loca
                     README.""")
 parser.add_argument("--output", help="""specifies a custom directory to dump
                     output to""")
+parser.add_argument("--to-mp3", help="""specifies whether or not to convert output
+                    to an MP3.""", action="store_true")
 
 args = parser.parse_args()
 
@@ -36,8 +44,8 @@ if args.source:
 
     # check types for all valid inputs
     if os.path.isdir(source):
-        # RECURSIVELY get all text files and append their paths to text_files
 
+        # RECURSIVELY get all text files and append their paths to text_files
         for dirpath, _, filenames in os.walk(source):
             for filename in filenames:
                 text_files.append(toPath(f"{dirpath}/{filename}"))
@@ -45,12 +53,10 @@ if args.source:
     # assuming it's a URL, validate it, and extract the url, or all the
     # videos in the provided playlist's.
     elif funcs.validate_url(source):
-        print("Parsing URL.")
         try:
             extracted_urls = Playlist(source)
             urls = [*extracted_urls]
         except KeyError:
-            YouTube(source)
             urls = [source]
 
     elif os.path.isfile(source):
@@ -74,28 +80,20 @@ if args.output:
     else:
         print(f"Invalid output folder! You gave: {new_path}")
 
-
-# Download the videos from the URL list, then convert them to an MP3
-# Clean this up in the morning!
-# Give different text files their own folders in output maybe?
-# add playlists tomorrow too
-# add Try statement for failed yt videos
-# add option to convert to mp3, and whether or not to keep both the mp4 and mp3
-# add a settings menu
-
-# print("Downloading N/A", end="\r")
-#next_prog(len(urls), 0)
-
 for url in urls:
     try:
-        yt_obj = YouTube(url)
-        stream = yt_obj.streams.first()
+        video = YouTube(url)
+        stream = video.streams.first()
         path_to_video = stream.download(output_path=output)
         root_path = os.path.abspath(os.path.splitext(path_to_video)[0])
-        print(root_path)
 
-        os.system(f"""{str(ffmpeg)} -i \"{root_path}.mp4\" \"{root_path}.mp3\" -loglevel        warning""")
+        # Check if the convert to MP3 flag is True.
+        if args.to_mp3:
+            os.system(f"""{str(ffmpeg)} -i \"{root_path}.mp4\" \"{root_path}.mp3\" -loglevel warning""")
+            os.remove(path_to_video)
 
-        os.remove(path_to_video)
-    except KeyError:
-        pass
+    except (KeyError, pyt_excep.RegexMatchError, pyt_excep.VideoUnavailable):
+        print(f"Couldn't download video. ({url})")
+
+    except pyt_excep.LiveStreamError:
+        print("Cannot download livestream.")

@@ -11,14 +11,17 @@
 #
 # It would be cool to have this be put into the PATH of the machine it's
 # being ran on, but support would be required for Linux too.
-##
+#
 # Give different text files their own folders in output maybe?
+#
+# Autogenerate the folders data, data/input, and data/output. Git doesn't
+# track empty folders, so this will be necessary in the future.
 
 from pytube import YouTube, Playlist
 from argparse import ArgumentParser
 from pathlib import Path as toPath
 from bs4 import BeautifulSoup
-import os, funcs, validators, requests
+import os, funcs, validators, requests, time
 import pytube.exceptions as pyt_excep
 
 urls = []
@@ -80,11 +83,21 @@ if args.output:
     else:
         print(f"Invalid output folder! You gave: {new_path}")
 
+# Download and convert (if the flag is true) YouTube videos.
 for url in urls:
     try:
         video = YouTube(url)
+        video_name = video.title
+
+        # Currently, PyTube for some reason will make some videos downloaded
+        # be named YouTube, so to prevent conflictions, they will be given
+        # a name based off the current time. Hopefully this can be fixed soon.
+        # (Also RIP any videos named YouTube)
+        if video_name == "YouTube":
+            video_name = str(round(time.time()))
+
         stream = video.streams.first()
-        path_to_video = stream.download(output_path=output)
+        path_to_video = stream.download(output_path=output, filename=video_name)
         root_path = os.path.abspath(os.path.splitext(path_to_video)[0])
 
         # Check if the convert to MP3 flag is True.

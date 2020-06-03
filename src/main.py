@@ -16,6 +16,8 @@
 #
 # Autogenerate the folders data, data/input, and data/output. Git doesn't
 # track empty folders, so this will be necessary in the future.
+#
+# Add check for when files have the same name when downloaded.
 
 from pytube import YouTube, Playlist
 from argparse import ArgumentParser
@@ -47,7 +49,6 @@ if args.source:
 
     # check types for all valid inputs
     if os.path.isdir(source):
-
         # RECURSIVELY get all text files and append their paths to text_files
         for dirpath, _, filenames in os.walk(source):
             for filename in filenames:
@@ -60,7 +61,7 @@ if args.source:
             extracted_urls = Playlist(source)
             urls = [*extracted_urls]
         except KeyError:
-            urls = [source]
+            urls.append(source)
 
     elif os.path.isfile(source):
         text_files.append(source)
@@ -103,7 +104,7 @@ for url in urls:
         # Check if the convert to MP3 flag is True.
         if args.to_mp3:
             os.system(f"""{str(ffmpeg)} -i \"{root_path}.mp4\" \"{root_path}.mp3\" -loglevel warning""")
-            os.remove(path_to_video)
+            os.remove(path_to_video) # Apparently not removing the original MP4 sometimes?
 
     except (KeyError, pyt_excep.RegexMatchError, pyt_excep.VideoUnavailable):
         print(f"Couldn't download video. ({url})")

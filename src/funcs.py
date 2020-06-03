@@ -71,9 +71,8 @@ def validate_url(url, insertion=None):
     # validators.url returns a boolean when it's a valid url,
     # and a tuple when it's not.
     if isinstance(validators.url(url), bool):
-        if insertion:
-            insertion.append(url)
-
+        if insertion is not None:
+            insertion.append(url.strip("\n"))
         return True
     else:
         return False

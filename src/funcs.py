@@ -36,9 +36,8 @@ def setup():
             zipped_folder.extractall(path=FFMPEG_INSTALLATION)
             filename = os.path.split(FFMPEG_URL)[1].strip(".zip")
             zip_file.close()
-            os.remove(ffmpeg_extraction) # this is causing
-
-        # an error based off permissions
+            os.remove(ffmpeg_extraction)
+            os.sleep()
 
     else:
         print("[*] FFmpeg installation detected!")

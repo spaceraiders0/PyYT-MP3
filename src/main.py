@@ -9,21 +9,28 @@
 # Finish validating whether or not FFmpeg is installed on this machine.
 # Maybe make it check if it's in the path?
 #
+# Instead of checking for FFmpeg's folder, check for the EXE.
+#
 # It would be cool to have this be put into the PATH of the machine it's
 # being ran on, but support would be required for Linux too.
 #
 # Give different text files their own folders in output maybe?
 #
+# Consider an Object Oriented approach to the downloader.
+#
 # Autogenerate the folders data, data/input, and data/output. Git doesn't
-# track empty folders, so this will be necessary in the future.
+#
+# Implement a temporary folder for the FFmpeg installation and mp4's downloaded
+# IF they're being converted to an mp3.
 #
 # Add check for when files have the same name when downloaded.
+
 
 from pytube import YouTube, Playlist
 from argparse import ArgumentParser
 from pathlib import Path as toPath
 from bs4 import BeautifulSoup
-import os, funcs, validators, requests, time
+import os, funcs, validators, requests, time, colorit, shutil
 import pytube.exceptions as pyt_excep
 
 urls = []
@@ -42,6 +49,7 @@ parser.add_argument("--to-mp3", help="""specifies whether or not to convert outp
                     to an MP3.""", action="store_true")
 
 args = parser.parse_args()
+funcs.setup()
 
 if args.source:
     text_files = []
@@ -85,15 +93,14 @@ if args.output:
         print(f"Invalid output folder! You gave: {new_path}")
 
 # Download and convert (if the flag is true) YouTube videos.
-for url in urls:
+for index in range(0, len(urls)):
     try:
+        url = urls[index]
         video = YouTube(url)
         video_name = video.title
+        progress = str(round((index + 1) / len(urls) * 100)) + "% completed"
+        video_downloading = f"Downloading video {video_name}"
 
-        # Currently, PyTube for some reason will make some videos downloaded
-        # be named YouTube, so to prevent conflictions, they will be given
-        # a name based off the current time. Hopefully this can be fixed soon.
-        # (Also RIP any videos named YouTube)
         if video_name == "YouTube":
             video_name = str(round(time.time()))
 
@@ -104,7 +111,7 @@ for url in urls:
         # Check if the convert to MP3 flag is True.
         if args.to_mp3:
             os.system(f"""{str(ffmpeg)} -i \"{root_path}.mp4\" \"{root_path}.mp3\" -loglevel warning""")
-            os.remove(path_to_video) # Apparently not removing the original MP4 sometimes?
+            os.remove(path_to_video)
 
     except (KeyError, pyt_excep.RegexMatchError, pyt_excep.VideoUnavailable):
         print(f"Couldn't download video. ({url})")

@@ -18,18 +18,41 @@ Positional Arguments:
 	source: This argument will specify where the script will grab links from.
 	As stated in the description, this script can take in multiple forms of
 	input for the source argument. This includes:  
-		- Playlists (python main.py PLAYLIST_URL)  
-		- Direct video link (python main.py VIDEO_URL)  
-		- A text file (python main.py PATH_TO_TEXT_FILE)  
-		- A directory (python main.py PATH_TO_DIRECTORY)  
+        * Playlists (python main.py PLAYLIST_URL)  
+        * Direct video link (python main.py VIDEO_URL)  
+        * A text file (python main.py PATH_TO_TEXT_FILE)  
+        * A directory (python main.py PATH_TO_DIRECTORY)  
 
 	I feel the only input type that may need explaining is the directory. All
 	it does, is search through the directory (recursively, mind you), for text
 	files containing URLs. While this may be a niche use-case, I felt it would
 	be a nice option to have.  
-
+  
 Optional Arguments:  
-
+	--output: This argument tells the script where you want the output to be
+	dumped to. In the script itself, this defaults to the data folder's output
+	directory, which is created when the script is ran.
+  
+	HOW TO USE:  
+		python main.py SOURCE --output PATH/TO/DIRECTORY  
+  
+	--to-mp3: This flag tells the script that you want to convert all videos
+	downloaded to MP3. If this flag is not specified, they will simply be kept
+	as MP4's.
+  
+	HOW TO USE:  
+		python main.py SOURCE --to-mp3  
+  
+# Notices
+Currently, as of release v9.6.0 of PyTube, there exists a bug where downloaded videos
+will have the name "YouTube". To combat this, and prevent file conflictions, when the
+video is downloaded, a check is performed on files with the name YouTube. If they are
+named this, they will be named based off the system time. I will be removing this check
+once the bug is finally fixed.
+  
+Through testing, I have discovered that *shortened YouTube URLs* will not work when they
+are put through the script. Keep this in mind.
+  
 # Credits
 PyTube, by nficano: https://github.com/nficano/pytube  
 FFmpeg, by the FFmpeg Team: https://ffmpeg.org/  

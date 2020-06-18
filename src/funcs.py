@@ -3,13 +3,19 @@
 # contact: spaceraiders@protonmail.com
 # description: contains functions and other things used by src/main.
 
-import os, requests, validators, sys, shutil, colorit, time
+import os
+import requests
+import validators
+import sys
+import shutil
+import time
 from pathlib import Path
 from zipfile import ZipFile
 
 ROOT_DIR = Path("../")
 FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20200522-38490cb-win64-static.zip"
-FFMPEG_INSTALLATION = ROOT_DIR / Path("ffmpeg")
+FFMPEG_INSTALLATION_DIR = ROOT_DIR / Path("ffmpeg")
+ZIPPED_FFMPEG_PATH = FFMPEG_INSTALLATION_DIR / Path("ffmpeg.zip")
 
 def setup():
     """Currently, all this function does is setup the envionment
@@ -20,25 +26,40 @@ def setup():
         data/output
     """
 
-    ffmpeg_exists = os.path.exists(FFMPEG_INSTALLATION)
-    ffmpeg_extraction = FFMPEG_INSTALLATION / Path("ffmpeg.zip")
+    ffmpeg_exists = os.path.exists(FFMPEG_INSTALLATION_DIR)
 
     if not ffmpeg_exists:
         print("[*] FFmpeg installation undetected, installing.")
-        os.mkdir(FFMPEG_INSTALLATION)
-        ffmpeg_info = requests.get(FFMPEG_URL).content
+        os.mkdir(FFMPEG_INSTALLATION_DIR)
+        zipped_data = requests.get(FFMPEG_URL).content
 
-        with open(ffmpeg_extraction, "wb") as zip_file:
-            # Create the Zip folder, and extract it's contents #
-            x = zip_file.write(ffmpeg_info)
-            print(x)
-            zipped_folder = ZipFile(ffmpeg_extraction)
-            zipped_folder.extractall(path=FFMPEG_INSTALLATION)
-            filename = os.path.split(FFMPEG_URL)[1].strip(".zip")
-            zip_file.close()
-            os.remove(ffmpeg_extraction)
-            os.sleep()
+        # Write the bytes of the downloaded .ZIP to a new file.
+        with open(ZIPPED_FFMPEG_PATH, "ab") as zipfile_data:
+            zipfile_data.write(zipped_data)
 
+        # Extract the .ZIP's contents.
+        with ZipFile(ZIPPED_FFMPEG_PATH) as zipped_file:
+            zipped_file.extractall(path=FFMPEG_INSTALLATION_DIR)
+
+        # Extract the contents of the subfolder, where all the actual files are.
+        subfolder_name = os.path.split(FFMPEG_URL)[1].strip(".zip")
+        subfolder = FFMPEG_INSTALLATION_DIR / Path(subfolder_name)
+
+        for dirpath, dirnames, filenames in os.walk(subfolder):
+            # loop through a list of all the items instead of two
+            # seperate loops for files and directories
+            directory_items = dirnames + filenames
+
+            # Move all the files and folders
+            for item in directory_items:
+                shutil.move(str(subfolder / Path(item)),
+                            str(FFMPEG_INSTALLATION_DIR))
+
+        print(subfolder_name)
+        print(subfolder)
+        # No need for the original .ZIP file, or the extracted folder.
+        os.remove(ZIPPED_FFMPEG_PATH)
+        os.rmdir(subfolder)
     else:
         print("[*] FFmpeg installation detected!")
 

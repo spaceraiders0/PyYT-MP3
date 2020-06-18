@@ -20,18 +20,22 @@
 #
 # Autogenerate the folders data, data/input, and data/output. Git doesn't
 #
+# Make all directories be based off the file's tree, rather than
+# which directory it was ran from.
+#
 # Implement a temporary folder for the FFmpeg installation and mp4's downloaded
 # IF they're being converted to an mp3.
 #
 # Add check for when files have the same name when downloaded.
 
-
+import os
+import funcs
+import requests
+import time
+import pytube.exceptions as pyt_excep
 from pytube import YouTube, Playlist
 from argparse import ArgumentParser
 from pathlib import Path as toPath
-from bs4 import BeautifulSoup
-import os, funcs, validators, requests, time, colorit, shutil
-import pytube.exceptions as pyt_excep
 
 urls = []
 output = toPath("../data/output")

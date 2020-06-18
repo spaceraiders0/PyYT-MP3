@@ -99,7 +99,6 @@ if args.output:
 # Download and convert (if the flag is true) YouTube videos.
 for index in range(0, len(urls)):
     try:
-        # d
         url = urls[index]
         video = YouTube(url)
         video_name = video.title

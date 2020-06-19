@@ -6,6 +6,11 @@ utility called PyTube. It can take input from many sources, including
 Playlists, text file(s), and direct video URLs, and optionally convert
 them to MP3, or keep them as an MP4.
 
+# Motivation
+This script is my magnum opus. My response to those shady Youtube > MP3<br/>
+websites. No longer must suspicious websites be used. No longer must there<br/>
+be limited video download lengths.<br/>
+
 # How To Use
 While the -h argument when calling main.py is intended for actually
 providing help on how to use the other argument, It is difficult to
@@ -18,11 +23,11 @@ Positional Arguments:
 	source: This argument will specify where the script will grab links from.
 	As stated in the description, this script can take in multiple forms of
 	input for the source argument. This includes:  
-        * Playlists (python main.py PLAYLIST_URL)  
-        * Direct video link (python main.py VIDEO_URL)  
-        * A text file (python main.py PATH_TO_TEXT_FILE)  
-        * A directory (python main.py PATH_TO_DIRECTORY)  
-
+    	- Playlists (python main.py PLAYLIST_URL)  
+    	- Direct video link (python main.py VIDEO_URL)  
+		- A text file (python main.py PATH_TO_TEXT_FILE)  
+    	- A directory (python main.py PATH_TO_DIRECTORY)  
+  
 	I feel the only input type that may need explaining is the directory. All
 	it does, is search through the directory (recursively, mind you), for text
 	files containing URLs. While this may be a niche use-case, I felt it would

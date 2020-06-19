@@ -64,7 +64,7 @@ parser.add_argument("--to-mp3", help="""specifies whether or not to convert outp
 
 args = parser.parse_args()
 funcs.setup()
-#c
+
 if args.source:
     text_files = []
     source = args.source

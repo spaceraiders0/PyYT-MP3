@@ -16,6 +16,9 @@ ROOT_DIR = Path("../")
 FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20200522-38490cb-win64-static.zip"
 FFMPEG_INSTALLATION_DIR = ROOT_DIR / Path("ffmpeg")
 ZIPPED_FFMPEG_PATH = FFMPEG_INSTALLATION_DIR / Path("ffmpeg.zip")
+DATA_FOLDER_PATH = ROOT_DIR / Path("data")
+
+logging_enabled = False
 
 def setup():
     """Currently, all this function does is setup the envionment
@@ -27,7 +30,9 @@ def setup():
     """
 
     ffmpeg_exists = os.path.exists(FFMPEG_INSTALLATION_DIR)
+    data_folder_exists = os.path.exists(DATA_FOLDER_PATH)
 
+    # Create and download FFmpeg, and set up the files.
     if not ffmpeg_exists:
         print("[*] FFmpeg installation undetected, installing.")
         os.mkdir(FFMPEG_INSTALLATION_DIR)
@@ -55,13 +60,20 @@ def setup():
                 shutil.move(str(subfolder / Path(item)),
                             str(FFMPEG_INSTALLATION_DIR))
 
-        print(subfolder_name)
-        print(subfolder)
         # No need for the original .ZIP file, or the extracted folder.
         os.remove(ZIPPED_FFMPEG_PATH)
         os.rmdir(subfolder)
     else:
         print("[*] FFmpeg installation detected!")
+
+    # Make folders that contain I/O stuff.
+    if not data_folder_exists:
+        print("[*] Data folder not detected.")
+        os.mkdir(DATA_FOLDER_PATH)
+        os.mkdir(DATA_FOLDER_PATH / Path("input"))
+        os.mkdir(DATA_FOLDER_PATH / Path("output"))
+    else:
+        print("[*] Data folder detected.")
 
 def next_prog(max_num, scale):
     percent = round(scale / max_num * 100)

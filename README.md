@@ -35,14 +35,14 @@ be a nice option to have.<br/>
 
 <br/>
 Optional Arguments<br/>
---output This argument tells the script where you want the output to be
+- --output This argument tells the script where you want the output to be
 dumped to. In the script itself, this defaults to the data folder's output
 directory, which is created when the script is ran.
 
 HOW TO USE<br/>
 python main.py SOURCE --output PATH/TO/DIRECTORY<br/>
 
---to-mp3 This flag tells the script that you want to convert all videos
+- --to-mp3 This flag tells the script that you want to convert all videos
 downloaded to MP3. If this flag is not specified, they will simply be kept
 as MP4's.
 

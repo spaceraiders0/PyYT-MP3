@@ -13,11 +13,8 @@ This script is my magnum opus. My response to those shady Youtube > MP3 websites
 While the -h argument when calling main.py is intended for actually providing help on how to use the
 other argument, It is difficult to fit each description on one line, and I can't include examples, so
 I will use this.
-
 <br/>
-
 As of writing this, these are the only arguments you can give the script
-
 <br/>
 Positional Arguments<br/>
 &nbsp;source: This argument will specify where the script will grab links from.
@@ -27,7 +24,7 @@ Positional Arguments<br/>
 &nbsp;&nbsp;- Direct video link (python main.py VIDEO_URL)<br/>
 &nbsp;&nbsp;- A text file (python main.py PATH_TO_TEXT_FILE)<br/>
 &nbsp;&nbsp;- A directory (python main.py PATH_TO_DIRECTORY)<br/>
-
+<br/>
 &nbsp;I feel the only input type that may need explaining is the directory. All
 &nbsp;it does, is search through the directory (recursively, mind you), for text
 &nbsp;files containing URLs. While this may be a niche use-case, I felt it would

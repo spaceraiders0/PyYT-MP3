@@ -17,33 +17,33 @@ I will use this.
 As of writing this, these are the only arguments you can give the script
 <br/>
 Positional Arguments<br/>
-&nbsp;source: This argument will specify where the script will grab links from.
-&nbsp;As stated in the description, this script can take in multiple forms of
-&nbsp;input for the source argument. This includes<br/>
-&nbsp;&nbsp;- Playlists (python main.py PLAYLIST_URL)<br/>
-&nbsp;&nbsp;- Direct video link (python main.py VIDEO_URL)<br/>
-&nbsp;&nbsp;- A text file (python main.py PATH_TO_TEXT_FILE)<br/>
-&nbsp;&nbsp;- A directory (python main.py PATH_TO_DIRECTORY)<br/>
+source: This argument will specify where the script will grab links from.
+As stated in the description, this script can take in multiple forms of
+input for the source argument. This includes<br/>
+- Playlists (python main.py PLAYLIST_URL)<br/>
+- Direct video link (python main.py VIDEO_URL)<br/>
+- A text file (python main.py PATH_TO_TEXT_FILE)<br/>
+- A directory (python main.py PATH_TO_DIRECTORY)<br/>
 <br/>
-&nbsp;I feel the only input type that may need explaining is the directory. All
-&nbsp;it does, is search through the directory (recursively, mind you), for text
-&nbsp;files containing URLs. While this may be a niche use-case, I felt it would
-&nbsp;be a nice option to have.<br/>
+I feel the only input type that may need explaining is the directory. All
+it does, is search through the directory (recursively, mind you), for text
+files containing URLs. While this may be a niche use-case, I felt it would
+be a nice option to have.<br/>
 <br/>
 Optional Arguments<br/>
-&nbsp;--output This argument tells the script where you want the output to be
-&nbsp;dumped to. In the script itself, this defaults to the data folder's output
-&nbsp;directory, which is created when the script is ran.
+--output This argument tells the script where you want the output to be
+dumped to. In the script itself, this defaults to the data folder's output
+directory, which is created when the script is ran.
 <br/>
-&nbsp;HOW TO USE<br/>
-&nbsp;&nbsp;python main.py SOURCE --output PATH/TO/DIRECTORY<br/>
+HOW TO USE<br/>
+python main.py SOURCE --output PATH/TO/DIRECTORY<br/>
 <br/>
-&nbsp;--to-mp3 This flag tells the script that you want to convert all videos
-&nbsp;downloaded to MP3. If this flag is not specified, they will simply be kept
-&nbsp;as MP4's.
+--to-mp3 This flag tells the script that you want to convert all videos
+downloaded to MP3. If this flag is not specified, they will simply be kept
+as MP4's.
 <br/>
-&nbsp;HOW TO USE<br/>
-&nbsp;&nbsp;python main.py SOURCE --to-mp3<br/>
+HOW TO USE<br/>
+python main.py SOURCE --to-mp3<br/>
 <br/>
 # Notices
 Currently, as of release v9.6.0 of PyTube, there exists a bug where downloaded videos

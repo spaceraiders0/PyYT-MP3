@@ -4,10 +4,6 @@
 # description: A small script to download Youtube videos.
 
 # TODO
-# Document more of the functions in funcs.py
-#
-# Finish validating whether or not FFmpeg is installed on this machine.
-# Maybe make it check if it's in the path?
 #
 # Instead of checking for FFmpeg's folder, check for the EXE.
 #
@@ -22,8 +18,6 @@
 # conversion times.
 #
 # Only auto-install FFmpeg if converting to MP3
-#
-# Autogenerate the folders data, data/input, and data/output. Git doesn't
 #
 # Make all directories be based off the file's tree, rather than
 # which directory it was ran from.
@@ -42,6 +36,7 @@ import os
 import funcs
 import requests
 import time
+import logging
 import pytube.exceptions as pyt_excep
 from pytube import YouTube, Playlist
 from argparse import ArgumentParser
@@ -51,6 +46,8 @@ urls = []
 output = toPath("../data/output")
 input_folder = toPath("../data/input")
 ffmpeg = os.path.abspath(toPath("../ffmpeg/bin/ffmpeg.exe"))
+logger = logging.getLogger("debug")
+logger.setLevel(10)
 parser = ArgumentParser()
 
 # Starts up the argument parser for customized functionality
@@ -61,6 +58,8 @@ parser.add_argument("--output", help="""specifies a custom directory to dump
                     output to""")
 parser.add_argument("--to-mp3", help="""specifies whether or not to convert output
                     to an MP3.""", action="store_true")
+parser.add_argument("--logging", help="""flag to turn on logging. debugging purposes
+                    only""", action="store_true")
 
 args = parser.parse_args()
 funcs.setup()

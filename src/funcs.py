@@ -9,31 +9,219 @@ import validators
 import sys
 import shutil
 import time
+import multiprocessing
+import logging
+from datetime import datetime as dt
 from pathlib import Path
 from zipfile import ZipFile
+from pytube import YouTube, Playlist
 
+# Achieve Playlists to beadded to the stream
+
+# Path definitions
 ROOT_DIR = Path("../")
 FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20200522-38490cb-win64-static.zip"
 FFMPEG_INSTALLATION_DIR = ROOT_DIR / Path("ffmpeg")
 ZIPPED_FFMPEG_PATH = FFMPEG_INSTALLATION_DIR / Path("ffmpeg.zip")
-DATA_FOLDER_PATH = ROOT_DIR / Path("data")
+IO_FOLDER_PATH = ROOT_DIR / Path("io")
+LOGGER_OUT = ROOT_DIR / Path("log")
 
-logging_enabled = False
+class Downloader():
+    __loggingParams = {}
+    __conversionParams = {}
+    __logger = None
+    __state = "Paused"
+    __states = ("Paused", "Stopped", "Playing", "Dead")
+
+    def __init__(self, outputFolder, urls=[]):
+        """Initiates the Downloader object.
+
+            Args:
+                outputFolder (string): The folder to output the final downloaded,
+                or converted file.
+        """
+
+        self.outputFolder = outputFolder
+        self.__urlStream = list(urls)
+
+    def __log(self, message, level):
+        """Logs a message to a logger file if
+            self.allowLogging is True.
+
+            Args:
+                message (string): The message to log.
+                level (int): The level of message to log.
+                Can be either an integer, or one of the
+                constants provided by the logging module.
+        """
+        currentTime = str(time.time())
+
+        if self.allowLogging:
+            # Make sure there's a "logging" directory here.
+
+            # Setup the logger.
+            if not self.logger:
+                logging.basicConfig(
+                    filename=str(LOGGER_OUT / Path(currentTime)),
+                    format="%(levelname)s %(asctime)s - %(message)s")
+                self.__logger = logging.getLogger()
+
+    def __convert(self, pathToFile):
+        """Takes in a file from pathToFile, and then
+            converts it based off self.conversionParams.
+            While this method may be ran, no conversion
+            will actually take place unless it is allowed
+            by self.conversionParams.
+
+            Args:
+                pathToFile (string, pathlike): The path to the file
+                that will be converted.
+        """
+
+        pass
+
+    def add_to_stream(self, url):
+        """Takes in a single URL, or list of URLs, and
+            appends them to this Downloader stream. Validates
+            that all URLs are properly formatted.
+
+            Args:
+                url (string, list): The URL(s) to add to the
+                Downloader's stream.
+        """
+
+        urlsToAdd = list(url)
+
+        # Filter out any invalid URLs
+        for url in urlsToAdd:
+            if not validators.url(url):
+                urlsToAdd.remove(url)
+                print("Detected invalid URL.")
+
+        self.__urlStream += urlsToAdd
+
+    def remove_from_stream(self, url):
+        """Takes in a single URL to remove from the stream
+            of URLs used by the Downloader.
+
+            Args:
+                url (string): The URL to remove from the stream.
+        """
+
+        if url in self.__urlStream:
+            self.__urlStream.remove(url)
+
+    def set_state(self, state):
+        if state in self.__states:
+            self.__state = state
+        else:
+            raise NameError("Invalid state") 
+
+    def get_state(self):
+        """Returns the current state of the downloader.
+
+            Returns:
+                string: The state of the downloader.
+        """
+
+        return self.__state
+
+    def start_stream(self):
+        """Starts the stream.
+        """
+
+        self.set_state("Playing")
+
+    def pause_stream(self):
+        """Pauses the stream. While this will stop the
+            downloading and writing of a file, it will NOT
+            stop the conversion of one. Instead, while
+            conversion is happening, it will pause after the
+            the file has finished converting.
+        """
+
+        self.set_state("Paused")
+
+    def stop_stream(self):
+        """Stops the stream.
+        """
+
+        self.set_state("Stopped")
+
+    def get_stream(self):
+        """Returns the current stream the Downloader is
+           using.
+        """
+
+        return self.__urlStream
+
+    def run(self):
+        # Once stopped, the downloader will be "dead."
+        while self.get_state() != "Stopped":
+
+            # If it's unpaused, it wont do anything until it's unpaused.
+            if self.get_state() == "Playing":
+
+                # Start downloading the newest video
+                if len(self.__urlStream) > 0:
+                    video = YouTube(self.__urlStream[0])
+                    videoStream = video.streams.first()
+                    videoTitle = video.player_response["videoDetails"]["title"]
+                    videoStream.download(output_path=self.outputFolder, filename=videoTitle)
+                    self.__urlStream.pop(0)
+                else:
+                    self.set_state("Paused")
+        else:
+            self.set_state("Dead")
+
+    def config_conversion(self, enabled=False, convertFrom=None, convertTo=None):
+        """Configures settings for when conversion is to be
+            done on downloaded files.
+
+            Args:
+                enabled (bool, optional): Whether or not conversion should
+                                        happen. Defaults to False.
+                convertFrom (string, optional): Filetype being converted.
+                                                Defaults to None.
+                convertTo (string, optional): Filetype to convert to. Defaults
+                                            to None.
+        """
+
+        conversionParams = {
+            "enableConversion": enabled,
+            "convertFrom": convertFrom,
+            "convertTo": convertTo,
+        }
+
+    def config_logger(self, enabled=False, loggingdDir="./log"):
+        """Configures and sets up paramaters for the logging
+            of this specific class.
+
+            Args:
+                enabled (bool, optional): Whether or not logging is enabled. Defaults to False.
+                loggingdDir (str, optional): The output of the logger. Defaults to "./log".
+        """
+
+        loggingParams = {
+            "allowLogging": enabled,
+            "loggingDir": loggingdDir
+        }
+
 
 def setup():
     """Currently, all this function does is setup the envionment
-    for the program to execute. It does:
+        for the program to execute. It does:
         - Validation of an FFmpeg Installation
         - Adding this to the path (optional)
         - Generate data folders, incliding data/input, and
         data/output
     """
 
-    ffmpeg_exists = os.path.exists(FFMPEG_INSTALLATION_DIR)
-    data_folder_exists = os.path.exists(DATA_FOLDER_PATH)
+    ffmpegExists = os.path.exists(FFMPEG_INSTALLATION_DIR)
+    ioFolderExists = os.path.exists(IO_FOLDER_PATH)
 
     # Create and download FFmpeg, and set up the files.
-    if not ffmpeg_exists:
+    if not ffmpegExists:
         print("[*] FFmpeg installation undetected, installing.")
         os.mkdir(FFMPEG_INSTALLATION_DIR)
         zipped_data = requests.get(FFMPEG_URL).content
@@ -67,13 +255,14 @@ def setup():
         print("[*] FFmpeg installation detected!")
 
     # Make folders that contain I/O stuff.
-    if not data_folder_exists:
+    if not ioFolderExists:
         print("[*] Data folder not detected.")
-        os.mkdir(DATA_FOLDER_PATH)
-        os.mkdir(DATA_FOLDER_PATH / Path("input"))
-        os.mkdir(DATA_FOLDER_PATH / Path("output"))
+        os.mkdir(IO_FOLDER_PATH)
+        os.mkdir(IO_FOLDER_PATH / Path("input"))
+        os.mkdir(IO_FOLDER_PATH / Path("output"))
     else:
         print("[*] Data folder detected.")
+
 
 def next_prog(max_num, scale):
     percent = round(scale / max_num * 100)
@@ -82,35 +271,6 @@ def next_prog(max_num, scale):
 
     print(total_prog, end="\r")
 
-
-def recursive_dir_get(match, attempts=10):
-    """This function will recursively go up a level in the
-    directory structure and attempt to match a directory name
-    with match.
-
-    Arguments:
-        match {string} -- The directory name to attempt to match.
-
-    Keyword Arguments:
-        attempts {int} -- The maximum amount of attempts to match. (default: {10})
-
-    Returns:
-        string -- The path to the matched directory.
-    """
-
-    total_attempts = 0
-
-    while total_attempts <= attempts:
-        current_directory = os.path.basename(os.path.abspath("."))
-
-        if current_directory == match:
-            os.chdir(__file__)
-            return os.abspath(current_directory)
-
-        os.chdir("..")
-        total_attempts += 1
-    else:
-        return ""
 
 def validate_url(url, insertion=None):
     """
@@ -134,7 +294,7 @@ def validate_url(url, insertion=None):
             insertion.append(url.strip("\n"))
         return True
     else:
-        return False
+        return {}
 
 
 def cls():

@@ -17,34 +17,42 @@ I will use this.
 As of writing this, these are the only arguments you can give the script
 <br/>
 <br/>Positional Arguments<br/>
+
 source: This argument will specify where the script will grab links from.
 As stated in the description, this script can take in multiple forms of
 input for the source argument. This includes<br/>
+
 - Playlists (python main.py PLAYLIST_URL)<br/>
 - Direct video link (python main.py VIDEO_URL)<br/>
 - A text file (python main.py PATH_TO_TEXT_FILE)<br/>
 - A directory (python main.py PATH_TO_DIRECTORY)<br/>
+
 <br/>
 I feel the only input type that may need explaining is the directory. All
 it does, is search through the directory (recursively, mind you), for text
 files containing URLs. While this may be a niche use-case, I felt it would
 be a nice option to have.<br/>
+
 <br/>
 Optional Arguments<br/>
 --output This argument tells the script where you want the output to be
 dumped to. In the script itself, this defaults to the data folder's output
 directory, which is created when the script is ran.
+
 <br/>
 HOW TO USE<br/>
 python main.py SOURCE --output PATH/TO/DIRECTORY<br/>
 <br/>
+
 --to-mp3 This flag tells the script that you want to convert all videos
 downloaded to MP3. If this flag is not specified, they will simply be kept
 as MP4's.
+
 <br/>
 HOW TO USE<br/>
 python main.py SOURCE --to-mp3<br/>
 <br/>
+
 # Notices
 Currently, as of release v9.6.0 of PyTube, there exists a bug where downloaded videos
 will have the name "YouTube". To combat this, and prevent file conflictions, when the

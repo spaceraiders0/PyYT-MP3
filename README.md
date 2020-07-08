@@ -39,16 +39,13 @@ Optional Arguments<br/>
 dumped to. In the script itself, this defaults to the data folder's output
 directory, which is created when the script is ran.
 
-<br/>
 HOW TO USE<br/>
 python main.py SOURCE --output PATH/TO/DIRECTORY<br/>
-<br/>
 
 --to-mp3 This flag tells the script that you want to convert all videos
 downloaded to MP3. If this flag is not specified, they will simply be kept
 as MP4's.
 
-<br/>
 HOW TO USE<br/>
 python main.py SOURCE --to-mp3<br/>
 <br/>

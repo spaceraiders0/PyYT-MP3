@@ -175,8 +175,8 @@ $RECYCLE.BIN/
 *.lnk
 
 # Other folders
-data/
-input/
+io/
+log/
 output/
 ffmpeg/
 

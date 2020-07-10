@@ -4,19 +4,19 @@
 # description: contains functions and other things used by src/main.
 
 import os
+import sys
+import time
+import shutil
+import logging
 import requests
 import validators
-import sys
-import shutil
-import time
 import multiprocessing
-import logging
-from datetime import datetime as dt
 from pathlib import Path
 from zipfile import ZipFile
+from datetime import datetime as dt
 from pytube import YouTube, Playlist
 
-# Achieve Playlists to beadded to the stream
+# Achieve Playlists to be added to the stream
 
 # Path definitions
 ROOT_DIR = Path("../")
@@ -25,15 +25,24 @@ FFMPEG_INSTALLATION_DIR = ROOT_DIR / Path("ffmpeg")
 ZIPPED_FFMPEG_PATH = FFMPEG_INSTALLATION_DIR / Path("ffmpeg.zip")
 IO_FOLDER_PATH = ROOT_DIR / Path("io")
 LOGGER_OUT = ROOT_DIR / Path("log")
+loggersToDisable = (
+    "pytube.helpers", "pytube.extract",
+    "pytube.cipher", "pytube.__main__",
+    "pytube.streams"
+)
+
+# Disable unwanted loggers from Pytube.
+for loggerName in loggersToDisable:
+    loggerDisabling = logging.getLogger(loggerName)
+    loggerDisabling.setLevel(50)
 
 class Downloader():
-    __loggingParams = {}
     __conversionParams = {}
     __logger = None
     __state = "Paused"
     __states = ("Paused", "Stopped", "Playing", "Dead")
 
-    def __init__(self, outputFolder, urls=[]):
+    def __init__(self, outputFolder, urls=[], logging=True):
         """Initiates the Downloader object.
 
             Args:
@@ -41,30 +50,9 @@ class Downloader():
                 or converted file.
         """
 
+        self.isLoggingAllowed = logging
         self.outputFolder = outputFolder
         self.__urlStream = list(urls)
-
-    def __log(self, message, level):
-        """Logs a message to a logger file if
-            self.allowLogging is True.
-
-            Args:
-                message (string): The message to log.
-                level (int): The level of message to log.
-                Can be either an integer, or one of the
-                constants provided by the logging module.
-        """
-        currentTime = str(time.time())
-
-        if self.allowLogging:
-            # Make sure there's a "logging" directory here.
-
-            # Setup the logger.
-            if not self.logger:
-                logging.basicConfig(
-                    filename=str(LOGGER_OUT / Path(currentTime)),
-                    format="%(levelname)s %(asctime)s - %(message)s")
-                self.__logger = logging.getLogger()
 
     def __convert(self, pathToFile):
         """Takes in a file from pathToFile, and then
@@ -79,6 +67,21 @@ class Downloader():
         """
 
         pass
+
+    def __log(self, message, level):
+        if self.__logger:
+            classLogger = self.__logger
+
+            levels = {
+                10: classLogger.debug,
+                20: classLogger.info,
+                30: classLogger.warning,
+                40: classLogger.error,
+                50: classLogger.critical
+            }
+
+            if levels.get(level):
+                levels[level](message)
 
     def add_to_stream(self, url):
         """Takes in a single URL, or list of URLs, and
@@ -115,7 +118,7 @@ class Downloader():
         if state in self.__states:
             self.__state = state
         else:
-            raise NameError("Invalid state") 
+            raise NameError("Invalid state")
 
     def get_state(self):
         """Returns the current state of the downloader.
@@ -193,19 +196,23 @@ class Downloader():
             "convertTo": convertTo,
         }
 
-    def config_logger(self, enabled=False, loggingdDir="./log"):
+    def config_logger(self, loggingdDir="../log", loggerLevel=0):
         """Configures and sets up paramaters for the logging
-            of this specific class.
+            of this Downloader instance.
 
-            Args:
-                enabled (bool, optional): Whether or not logging is enabled. Defaults to False.
-                loggingdDir (str, optional): The output of the logger. Defaults to "./log".
+        Args:
+            enabled (bool, optional): Whether or not logging is allowed. Defaults to False.
+            loggingdDir (str, optional): The place where log files will be stored. Defaults to "../log".
+            loggerLevel (int, optional): The minimum level to log. Defaults to 0.
         """
 
-        loggingParams = {
-            "allowLogging": enabled,
-            "loggingDir": loggingdDir
-        }
+        logging.basicConfig(
+            filename=str(Path(loggingdDir) / Path(dt.now().strftime("%Y-%M-%d"))),
+            format="%(name)s %(levelname)s %(asctime)s - %(message)s",
+            level=loggerLevel)
+
+        self.__logger = logging.getLogger(__name__)
+        self.__log("Logger successfully initiated.", 10)
 
 
 def setup():

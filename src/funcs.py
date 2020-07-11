@@ -101,6 +101,8 @@ class Downloader():
                 urlsToAdd.remove(url)
                 print("Detected invalid URL.")
 
+        self.__log(f"")
+
         self.__urlStream += urlsToAdd
 
     def remove_from_stream(self, url):
@@ -164,6 +166,7 @@ class Downloader():
 
             # If it's unpaused, it wont do anything until it's unpaused.
             if self.get_state() == "Playing":
+                self.__log("Resuming downloader stream.", 10)
 
                 # Start downloading the newest video
                 if len(self.__urlStream) > 0:
@@ -171,10 +174,13 @@ class Downloader():
                     videoStream = video.streams.first()
                     videoTitle = video.player_response["videoDetails"]["title"]
                     videoStream.download(output_path=self.outputFolder, filename=videoTitle)
+                    self.__log(f"Downloaded video {videoTitle}", 10)
                     self.__urlStream.pop(0)
                 else:
+                    self.__log("No more videos to download. Pausing stream.", 10)
                     self.set_state("Paused")
         else:
+            self.__log("Downloader has been killed.", 10)
             self.set_state("Dead")
 
     def config_conversion(self, enabled=False, convertFrom=None, convertTo=None):
@@ -196,6 +202,8 @@ class Downloader():
             "convertTo": convertTo,
         }
 
+        self.__log("Successfully initiated conversion!", 10)
+
     def config_logger(self, loggingdDir="../log", loggerLevel=0):
         """Configures and sets up paramaters for the logging
             of this Downloader instance.
@@ -207,7 +215,7 @@ class Downloader():
         """
 
         logging.basicConfig(
-            filename=str(Path(loggingdDir) / Path(dt.now().strftime("%Y-%M-%d"))),
+            filename=str(Path(loggingdDir) / Path(dt.now().strftime("%Y-%m-%d"))),
             format="%(name)s %(levelname)s %(asctime)s - %(message)s",
             level=loggerLevel)
 

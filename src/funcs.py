@@ -118,8 +118,10 @@ class Downloader():
 
     def set_state(self, state):
         if state in self.__states:
+            self.__log(f"Set state of downloader to {state}.", 20)
             self.__state = state
         else:
+            self.__log(f"Attempt to set invalid state, {state}.", 10)
             raise NameError("Invalid state")
 
     def get_state(self):
@@ -135,6 +137,7 @@ class Downloader():
         """Starts the stream.
         """
 
+        self.__log("Stream started.", 10)
         self.set_state("Playing")
 
     def pause_stream(self):
@@ -145,12 +148,14 @@ class Downloader():
             the file has finished converting.
         """
 
+        self.__log("Stream paused.", 10)
         self.set_state("Paused")
 
     def stop_stream(self):
         """Stops the stream.
         """
 
+        self.__log("Stream stopped..", 10)
         self.set_state("Stopped")
 
     def get_stream(self):
@@ -166,43 +171,40 @@ class Downloader():
 
             # If it's unpaused, it wont do anything until it's unpaused.
             if self.get_state() == "Playing":
-                self.__log("Resuming downloader stream.", 10)
+                self.__log("Resuming downloader stream.", 20)
 
                 # Start downloading the newest video
                 if len(self.__urlStream) > 0:
                     video = YouTube(self.__urlStream[0])
                     videoStream = video.streams.first()
                     videoTitle = video.player_response["videoDetails"]["title"]
-                    videoStream.download(output_path=self.outputFolder, filename=videoTitle)
-                    self.__log(f"Downloaded video {videoTitle}", 10)
+                    videoPath = videoStream.download(output_path=self.outputFolder, filename=videoTitle)
+                    print(videoPath)
+                    self.__log(f"Downloaded video {videoTitle}", 20)
                     self.__urlStream.pop(0)
                 else:
-                    self.__log("No more videos to download. Pausing stream.", 10)
                     self.set_state("Paused")
         else:
-            self.__log("Downloader has been killed.", 10)
+            self.__log("Downloader has been killed during runtime.", 20)
             self.set_state("Dead")
 
-    def config_conversion(self, enabled=False, convertFrom=None, convertTo=None):
-        """Configures settings for when conversion is to be
-            done on downloaded files.
+    def config_conversion(self, enabled=False, convertTo="mp4"):
+        """Configures the conversion (if enabled) of videos downloaded by this
+        Downloader object. Can convert MP4 to anything FFmpeg supports. You can
+        find these by doing "ffmpeg -formats" at your commandline.
 
-            Args:
-                enabled (bool, optional): Whether or not conversion should
-                                        happen. Defaults to False.
-                convertFrom (string, optional): Filetype being converted.
-                                                Defaults to None.
-                convertTo (string, optional): Filetype to convert to. Defaults
-                                            to None.
+        :param enabled: Whether or not conversion is enabled., defaults to False
+        :type enabled: bool, optional
+        :param convertTo: The format to convert to., defaults to "mp4"
+        :type convertTo: string, optional
         """
 
         conversionParams = {
             "enableConversion": enabled,
-            "convertFrom": convertFrom,
             "convertTo": convertTo,
         }
 
-        self.__log("Successfully initiated conversion!", 10)
+        self.__log("Successfully initiated conversion!", 20)
 
     def config_logger(self, loggingdDir="../log", loggerLevel=0):
         """Configures and sets up paramaters for the logging
@@ -217,7 +219,8 @@ class Downloader():
         logging.basicConfig(
             filename=str(Path(loggingdDir) / Path(dt.now().strftime("%Y-%m-%d"))),
             format="%(name)s %(levelname)s %(asctime)s - %(message)s",
-            level=loggerLevel)
+            level=loggerLevel
+        )
 
         self.__logger = logging.getLogger(__name__)
         self.__log("Logger successfully initiated.", 10)
@@ -285,31 +288,6 @@ def next_prog(max_num, scale):
     total_prog = f"<{prog_char * percent}{none_char * (100-percent)}>"
 
     print(total_prog, end="\r")
-
-
-def validate_url(url, insertion=None):
-    """
-        This function will determine whether or not the URL
-        provided matches formatting for an actual URL.
-
-        Arguments:
-            url {string} -- The URL to be validated
-
-        Keyword Arguments:
-            insertion {list} -- Where the URL will be inserted into (default: {None})
-
-        Returns:
-            bool -- The validity of the URL.
-    """
-
-    # validators.url returns a boolean when it's a valid url,
-    # and a tuple when it's not.
-    if isinstance(validators.url(url), bool):
-        if insertion is not None:
-            insertion.append(url.strip("\n"))
-        return True
-    else:
-        return {}
 
 
 def cls():

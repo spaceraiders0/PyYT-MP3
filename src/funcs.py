@@ -179,8 +179,12 @@ class Downloader():
                     videoStream = video.streams.first()
                     videoTitle = video.player_response["videoDetails"]["title"]
                     videoPath = videoStream.download(output_path=self.outputFolder, filename=videoTitle)
-                    print(videoPath)
-                    self.__log(f"Downloaded video {videoTitle}", 20)
+                    self.__log(f"Downloaded video {videoTitle} to path {videoPath}", 20)
+
+                    if self.__conversionParams["enabled"]:
+                        if os.system("ffmpeg"):
+                            print("h")
+
                     self.__urlStream.pop(0)
                 else:
                     self.set_state("Paused")
@@ -199,8 +203,8 @@ class Downloader():
         :type convertTo: string, optional
         """
 
-        conversionParams = {
-            "enableConversion": enabled,
+        self.__conversionParams = {
+            "enabled": enabled,
             "convertTo": convertTo,
         }
 

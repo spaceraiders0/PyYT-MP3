@@ -23,6 +23,7 @@ ROOT_DIR = Path("../")
 FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20200522-38490cb-win64-static.zip"
 FFMPEG_INSTALLATION_DIR = ROOT_DIR / Path("ffmpeg")
 ZIPPED_FFMPEG_PATH = FFMPEG_INSTALLATION_DIR / Path("ffmpeg.zip")
+FFMPEG_BIN = FFMPEG_INSTALLATION_DIR / Path("bin")
 IO_FOLDER_PATH = ROOT_DIR / Path("io")
 LOGGER_OUT = ROOT_DIR / Path("log")
 loggersToDisable = (
@@ -42,7 +43,7 @@ class Downloader():
     __state = "Paused"
     __states = ("Paused", "Stopped", "Playing", "Dead")
 
-    def __init__(self, outputFolder, urls=[], logging=True):
+    def __init__(self, outputFolder, urls=[], logging=False):
         """Initiates the Downloader object.
 
             Args:
@@ -56,17 +57,12 @@ class Downloader():
 
     def __convert(self, pathToFile):
         """Takes in a file from pathToFile, and then
-            converts it based off self.conversionParams.
-            While this method may be ran, no conversion
-            will actually take place unless it is allowed
-            by self.conversionParams.
-
-            Args:
-                pathToFile (string, pathlike): The path to the file
-                that will be converted.
         """
-
-        pass
+        # Create a path without any extension.
+        truePath = Path(pathToFile).parents[0] / Path(pathToFile).stem        
+        print(f'ffmpeg -i "{truePath}.mp4" "{truePath}.mp3"')
+        os.system(f"ffmpeg -i {truePath}.mp4 {truePath}.mp3")
+            
 
     def __log(self, message, level):
         if self.__logger:
@@ -84,6 +80,7 @@ class Downloader():
                 levels[level](message)
 
     def add_to_stream(self, url):
+
         """Takes in a single URL, or list of URLs, and
             appends them to this Downloader stream. Validates
             that all URLs are properly formatted.
@@ -182,8 +179,8 @@ class Downloader():
                     self.__log(f"Downloaded video {videoTitle} to path {videoPath}", 20)
 
                     if self.__conversionParams["enabled"]:
-                        if os.system("ffmpeg"):
-                            print("h")
+                        print("Conversion is enabled.")
+                        self.__convert(videoPath)
 
                     self.__urlStream.pop(0)
                 else:

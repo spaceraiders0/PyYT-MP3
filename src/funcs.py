@@ -101,7 +101,9 @@ class Downloader():
     __state = "Paused"
     __states = ("Paused", "Stopped", "Playing", "Dead")
 
-    def __init__(self, outputFolder, urls=[], logging=False):
+    def __init__(self, outputFolder, urls=[], logging=False, killAfterFinished=False,
+                 keepFile=False):
+
         """Initiates the Downloader object.
 
             Args:
@@ -109,20 +111,24 @@ class Downloader():
                 or converted file.
         """
 
-        self.isLoggingAllowed = logging
         self.outputFolder = outputFolder
         self.__urlStream = list(urls)
+        self.isLoggingAllowed = logging
+        self.killAfterFinished = killAfterFinished
+        self.keepFile = keepFile
 
     def __convert(self, pathToFile):
         """Takes in a file from pathToFile, and then
         """
 
-        if ffmpegExists:
-            # Create a path without any extension.
-            convertTo = self.__conversionParams["convertTo"]
-            truePath = Path(pathToFile).parents[0] / Path(pathToFile).stem        
-            os.system(f'ffmpeg -i "{truePath}.mp4" "{truePath}.{convertTo}"')
+        # Create a path without any extension.
+        convertTo = self.__conversionParams["convertTo"]
+        truePath = Path(pathToFile).parents[0] / Path(pathToFile).stem        
+        os.system(f'ffmpeg -i "{truePath}.mp4" "{truePath}.{convertTo}"')
 
+        if not self.keepFile:
+            os.remove(f"{truePath}.mp4")
+        
     def __log(self, message, level):
         if self.__logger:
             classLogger = self.__logger
@@ -237,17 +243,22 @@ class Downloader():
                     videoPath = videoStream.download(output_path=self.outputFolder, filename=videoTitle)
                     self.__log(f"Downloaded video {videoTitle} to path {videoPath}", 20)
 
-                    if self.__conversionParams["enabled"] and ffmpegExists:
+                    if self.__conversionParams.get("enabled") and ffmpegExists:
                         self.__convert(videoPath)
-
+                    
+                    print(f"Downloaded video {videoTitle}")
                     self.__urlStream.pop(0)
                 else:
-                    self.set_state("Paused")
+                    print("Stream is dead.")
+                    if self.killAfterFinished:
+                        self.stop_stream()
+                    else:
+                        self.pause_stream()
         else:
             self.__log("Downloader has been killed during runtime.", 20)
             self.set_state("Dead")
 
-    def config_conversion(self, enabled=False, convertTo="mp4"):
+    def config_conversion(self, enabled=False, convertTo="mp3"):
         """Configures the conversion (if enabled) of videos downloaded by this
         Downloader object. Can convert MP4 to anything FFmpeg supports. You can
         find these by doing "ffmpeg -formats" at your commandline.

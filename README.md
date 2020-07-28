@@ -12,6 +12,33 @@ this useful at some point.
 in the same place.
 - I wanted to try my hand at making a wrapper.
 
+# Installation
+There are a few ways of setting this up, since it doesn't necessarily work out of the box.
+On it's own, this script can download videos, with PyTube, but that's about it. If you'd wish
+to *convert* the resulting videos to an MP3, or other audio format, you're going to need to
+install FFmpeg. <br>
+
+### Windows
+This script was originally, mostly created on Windows, so I implemented functionality to install
+FFmpeg for you, but only to the project's directory. That is, if there isn't already an FFmpeg
+installation detected. This is exclusive to windows, however. If you'd like to have it be usable
+globally across windows, you can use manually download, and add FFmpeg to your path from this URL:
+https://www.ffmpeg.org
+
+### Linux
+If you're on Linux, you're out of luck on getting FFmpeg automatically installed by this script.
+This is mostly because you can easily install it by using your package manager.
+
+Ubuntu, it's related flavors, or any distro using APT:
+```
+sudo apt-get install ffmpeg
+```
+
+### Mac
+Unfortunately, I do not own a Mac, so I couldn't exactly test this on the OS. For all I know, this
+could function completely normally on a Mac. In the case you are running a Mac, you should assume
+that this script is broken. If you'd like, however, you can test it and let me know how it functions.
+
 # Credits
 PyTube, by nficano https://github.com/nficano/pytube <br/>
 FFmpeg, by the FFmpeg Team: https://www.ffmpeg.org

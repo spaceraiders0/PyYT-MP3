@@ -33,16 +33,15 @@
 # Add check for when files have the same name when downloaded.
 
 import pathlib
-import funcs
 import validators
 import argparse
+from downloader import Downloader
 from pytube import YouTube, Playlist
 
 urlsToPass = []
 
 # Add all the arguments (optional, or otherwise)
-argParser = argparse.ArgumentParser(description="A script to download Youtube videos.",
-                                    formatter_class=argparse.RawTextHelpFormatter)
+argParser = argparse.ArgumentParser(description="A script to download Youtube videos.")
 argParser.add_argument("source", help="The place to extract URLs from. More info the README.md")
 argParser.add_argument("-d", help="Whether or not debugging should happen.", action="store_true")
 argParser.add_argument("-f", help="The format to convert the videos to.")
@@ -62,7 +61,7 @@ if validators.url(sourceURL):
     elif sourceURL.startswith("https://www.youtube.com/playlist?list="):
         urlsToPass = Playlist(sourceURL).video_urls
 
-vDownloader = funcs.Downloader(".", urls=urlsToPass, logging=getattr(parsedArgs, "d"),
+vDownloader = Downloader(".", urls=urlsToPass, logging=getattr(parsedArgs, "d"),
                                killAfterFinished=True, keepFile=parsedArgs.k)
 vDownloader.start_stream()
 

@@ -5,38 +5,11 @@
 # contact: spaceraiders@protonmail.com
 # description: A small script to download Youtube videos.
 
-# TODO
-#
-# Instead of checking for FFmpeg's folder, check for the EXE.
-#
-# It would be cool to have this be put into the PATH of the machine it's
-# being ran on, but support would be required for Linux too.
-#
-# Give different text files their own folders in output maybe?
-#
-# Consider an Object Oriented approach to the downloader.
-#
-# Test lower-quality MP4's to convert to MP3's in hopes of quicker
-# conversion times.
-#
-# Make all directories be based off the file's tree, rather than
-# which directory it was ran from.
-#
-# Implement a temporary folder for the FFmpeg installation and mp4's downloaded
-# IF they're being converted to an mp3.
-#
-# Add a "logger" argument to main.py, --logger
-#
-# Cause the FFmpeg folder to be deleted on KeyboardInterrupt to prevent
-# conflictions. 
-#
-# Add check for when files have the same name when downloaded.
-
 import pathlib
 import validators
 import argparse
 from downloader import Downloader
-from pytube import YouTube, Playlist
+from validation import verify
 
 urlsToPass = []
 
@@ -53,16 +26,13 @@ parsedArgs = argParser.parse_args()
 # Setup all the URLs to pass to the Downloader.
 sourceURL = parsedArgs.source
 
-# If the URL is actually a valid URL
-if validators.url(sourceURL):
-    # If the URL is linking to a video or playlist.
-    if sourceURL.startswith("https://www.youtube.com/watch?v="):
-        urlsToPass.append(sourceURL)
-    elif sourceURL.startswith("https://www.youtube.com/playlist?list="):
-        urlsToPass = Playlist(sourceURL).video_urls
+# Load up all the URLs and verify sources. 
+verify(parsedArgs.source, urlsToPass)
+print(urlsToPass)
 
 vDownloader = Downloader(".", urls=urlsToPass, logging=getattr(parsedArgs, "d"),
-                               killAfterFinished=True, keepFile=parsedArgs.k)
+                         killAfterFinished=True, keepFile=parsedArgs.k)
+
 vDownloader.start_stream()
 
 # Configure the Downloader's conversion (if it's specified)

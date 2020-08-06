@@ -1,7 +1,8 @@
-# funcs.py
+# downloader.py
 # created by: spaceraiders
 # contact: spaceraiders@protonmail.com
-# description: contains functions and other things used by src/main.
+# description: contains the downloader object, and other things
+# used by src/downloader.py
 
 import os
 import sys
@@ -10,13 +11,10 @@ import shutil
 import logging
 import requests
 import validators
-import multiprocessing
 from pathlib import Path
 from zipfile import ZipFile
 from datetime import datetime as dt
 from pytube import YouTube, Playlist
-
-# Achieve Playlists to be added to the stream
 
 # Path definitions
 ROOT_DIR = Path("../")
@@ -24,8 +22,6 @@ FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20200522-384
 FFMPEG_INSTALLATION_DIR = ROOT_DIR / Path("ffmpeg")
 ZIPPED_FFMPEG_PATH = FFMPEG_INSTALLATION_DIR / Path("ffmpeg.zip")
 FFMPEG_BIN = FFMPEG_INSTALLATION_DIR / Path("bin")
-IO_FOLDER_PATH = ROOT_DIR / Path("io")
-IO_FOLDER_EXISTS = IO_FOLDER_PATH.exists()
 LOGGER_OUT = ROOT_DIR / Path("log")
 AUDIO_FORMATS = ("mp3", "wav", "ogg")
 loggersToDisable = (
@@ -61,12 +57,13 @@ def setup():
     if not ffmpegExists:
         print("[*] FFmpeg installation undetected, installing.")
         os.mkdir(FFMPEG_INSTALLATION_DIR)
-        zipped_data = requests.get(FFMPEG_URL).content
+        zipped_data = requests.get(FFMPEG_URL)
 
         # Write the bytes of the downloaded .ZIP to a new file.
-        with open(ZIPPED_FFMPEG_PATH, "ab") as zipfile_data:
-            zipfile_data.write(zipped_data)
-
+        with open(ZIPPED_FFMPEG_PATH, "wb") as zipfile_source:
+            for chunk in zipped_data.iter_content(chunk_size=255):
+                zipfile_source.write(chunk)
+        
         # Extract the .ZIP's contents.
         with ZipFile(ZIPPED_FFMPEG_PATH) as zipped_file:
             zipped_file.extractall(path=FFMPEG_INSTALLATION_DIR)
@@ -88,13 +85,6 @@ def setup():
         # No need for the original .ZIP file, or the extracted folder.
         os.remove(ZIPPED_FFMPEG_PATH)
         os.rmdir(subfolder)
-    
-    # Make folders that contain I/O stuff.
-    if not ioFolderExists:
-        print("[*] Data folder not detected.")
-        os.mkdir(IO_FOLDER_PATH)
-        os.mkdir(IO_FOLDER_PATH / Path("input"))
-        os.mkdir(IO_FOLDER_PATH / Path("output"))
 
 class Downloader():
     __conversionParams = {}
@@ -102,7 +92,7 @@ class Downloader():
     __state = "Paused"
     __states = ("Paused", "Stopped", "Playing", "Dead")
 
-    def __init__(self, outputFolder, urls=[], logging=False, killAfterFinished=False,
+    def __init__(self, outputFolder=".", urls=[], logging=False, killAfterFinished=False,
                  keepFile=False):
 
         """Initiates the Downloader object.
@@ -125,7 +115,7 @@ class Downloader():
         # Create a path without any extension.
         convertTo = self.__conversionParams["convertTo"]
         truePath = Path(pathToFile).parents[0] / Path(pathToFile).stem        
-        os.system(f'ffmpeg -i "{truePath}.mp4" "{truePath}.{convertTo}"')
+        os.system(f'ffmpeg -i "{truePath}.mp4" "{truePath}.{convertTo}" -loglevel warning')
 
         if not self.keepFile:
             os.remove(f"{truePath}.mp4")
@@ -146,7 +136,6 @@ class Downloader():
                 levels[level](message)
 
     def add_to_stream(self, url):
-
         """Takes in a single URL, or list of URLs, and
             appends them to this Downloader stream. Validates
             that all URLs are properly formatted.
@@ -299,37 +288,3 @@ class Downloader():
         self.__logger = logging.getLogger(__name__)
         self.__log("Logger successfully initiated.", 10)
 
-def next_prog(max_num, scale):
-    percent = round(scale / max_num * 100)
-    prog_char, none_char = "=", " "
-    total_prog = f"<{prog_char * percent}{none_char * (100-percent)}>"
-
-    print(total_prog, end="\r")
-
-
-def cls():
-    """Simply clears the screen, in a multi-platform way.
-    """
-
-    system = sys.platform
-
-    if system == "win32":
-        os.system("cls")
-    elif system in ("darwin", "linux"):
-        os.system("clear")
-
-
-def draw_at_row(text, percent=0):
-    """Draws text at the specified % of the screen rows. It does this by
-    wiping the screen, and then generating a bunch of newlines based off the
-    percent argument.
-
-    Args:
-        text (string): The text to draw on the screen.
-        percent (integer, optional): the % of the screen to draw at. Defaults to 0.
-    """
-
-    cls()
-    columns = round(shutil.get_terminal_size().columns / 4)
-    position = round(columns * percent / 100)
-    rint("\n" * position, end=f"{text}\n")

@@ -1,3 +1,10 @@
+# Includes functions used for validation of URLs. Used by download.py
+# to verify if the commandline argument "Source" is a valid URL. If
+# it isn't, it
+# will attempt to "build" the URL, and switch it up
+# with something else. Example:
+# www.youtube.com is replaced with: https://www.youtube.com
+
 import validators
 from pathlib import Path
 from pytube import YouTube, Playlist
@@ -27,19 +34,23 @@ def is_video(url):
     
     return isValidURL and url.startswith("https://www.youtube.com/watch?v=")
 
-
 def is_file(path):
     return path.exists() and path.is_file()
 
-def verify(url, urlStorage):
+def verify(url):
+    url_storage = []
+
     if is_playlist(url):
-        urlStorage.append(Playlist(url).video_urls)
+        url_storage.append(Playlist(url).video_urls)
     elif is_video(url):
-        urlStorage.append(YouTube(is_video))
+        url_storage.append(YouTube(is_video))
     elif is_file(Path(url)):
         with open(Path(url), "r") as urlFile:
             url_list = urlFile.readlines()
 
             for url_line in url_list:
-                print(url_line)
-    
+                if is_url(url_line)[0]:
+                    url_storage.append(url_line)
+
+    return url_storage
+   

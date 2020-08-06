@@ -38,7 +38,7 @@ for loggerName in loggersToDisable:
 def ffmpegExists():
     ffmpegExistsInRoot = os.path.exists(FFMPEG_INSTALLATION_DIR)
     ffmpegExistsInPath = shutil.which("ffmpeg")
-
+    print("h")
     if not ffmpegExistsInPath or not ffmpegExistsInRoot:
         return False
     return True
@@ -48,10 +48,7 @@ def setup():
         for the program to execute. It does:
         - Validation of an FFmpeg Installation
         - Adding this to the path (optional)
-        - Generate data folders, incliding data/input, and
-        data/output
     """
-
     # Create and download FFmpeg, and set up the files if there is no
     # EXE in the path, or in the root project directory.
     if not ffmpegExists:
@@ -69,7 +66,7 @@ def setup():
             zipped_file.extractall(path=FFMPEG_INSTALLATION_DIR)
 
         # Extract the contents of the subfolder, where all the actual files are.
-        subfolder_name = os.path.split(FFMPEG_URL)[1].strip(".zip")
+        subfolder_name = os.path.split(FFMPEG_URL)[1].strip(".zip") # This will remove all characters containing . z i and p in them.
         subfolder = FFMPEG_INSTALLATION_DIR / Path(subfolder_name)
 
         for dirpath, dirnames, filenames in os.walk(subfolder):
@@ -218,6 +215,13 @@ class Downloader():
         return self.__urlStream
 
     def run(self):
+        # Prompt the user to install FFmpeg (assuming they're on windows).
+        if ffmpegExists and sys.platform == "win32":
+            install_ffmpeg = input("No FFmpeg installation detect. Install? (Y/N)")
+
+            if install_ffmpeg.lower() == "y":
+                setup()
+
         # Once stopped, the downloader will be "dead."
         while self.get_state() != "Stopped":
 
@@ -229,8 +233,9 @@ class Downloader():
                 # Start downloading the newest video
                 if len(self.__urlStream) > 0:
                     video = YouTube(self.__urlStream[0])
-                    # Check if we're converting something to something like MP3
-                    # so it takes elss time to convert.
+                    # Check if we're converting something to another format, download a low-res
+                    # version so it takes less time to convert.
+                    
                     videoStream = video.streams.first() if not convEnabled else video.streams.get_lowest_resolution() 
                     videoTitle = video.player_response["videoDetails"]["title"]
                     videoPath = videoStream.download(output_path=self.outputFolder, filename=videoTitle)
@@ -238,6 +243,8 @@ class Downloader():
 
                     if self.__conversionParams.get("enabled") and ffmpegExists:
                         self.__convert(videoPath)
+                    else:
+                        print("FFmpeg not detected. Could not convert video.")
                     
                     print(f"Downloaded video {videoTitle}")
                     self.__urlStream.pop(0)
@@ -287,4 +294,8 @@ class Downloader():
 
         self.__logger = logging.getLogger(__name__)
         self.__log("Logger successfully initiated.", 10)
+
+        # Make the logging directory if one doesn't exist.
+        if not Path(loggingdDir).exists():
+            logger_path = Path(loggingdDir).mkdir()
 

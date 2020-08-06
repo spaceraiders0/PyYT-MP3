@@ -181,6 +181,6 @@ output/
 ffmpeg/
 
 # Other files
-testing.py
+videos.txt
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,visualstudiocode,python

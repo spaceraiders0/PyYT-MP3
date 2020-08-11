@@ -41,9 +41,9 @@ def verify(url):
     url_storage = []
 
     if is_playlist(url):
-        url_storage.append(Playlist(url).video_urls)
+        url_storage = Playlist(url).video_urls
     elif is_video(url):
-        url_storage.append(YouTube(is_video))
+        url_storage.append(url)
     elif is_file(Path(url)):
         with open(Path(url), "r") as urlFile:
             url_list = urlFile.readlines()
@@ -53,4 +53,4 @@ def verify(url):
                     url_storage.append(url_line)
 
     return url_storage
-   
+

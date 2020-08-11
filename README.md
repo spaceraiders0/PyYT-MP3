@@ -21,7 +21,7 @@ install FFmpeg. <br>
 ### Windows
 This script was originally, mostly created on Windows, so I implemented functionality to install
 FFmpeg for you, but only to the project's directory. That is, if there isn't already an FFmpeg
-installation detected. This is exclusive to windows, however. If you'd like to have it be usable
+installation detected. This is exclusive to Windows, however. If you'd like to have it be usable
 globally across windows, you can use manually download, and add FFmpeg to your path from this URL:
 https://www.ffmpeg.org
 
@@ -38,6 +38,15 @@ sudo apt-get install ffmpeg
 Unfortunately, I do not own a Mac, so I couldn't exactly test this on the OS. For all I know, this
 could function completely normally on a Mac. In the case you are running a Mac, you should assume
 that this script is broken. If you'd like, however, you can test it and let me know how it functions.
+
+# Notices
+As of this time, I used the specific GitHub repository to install PyTube instead of the one downloaded
+directly from pip. It appears to be more stable, so I suggest you to do the same. That being said, however,
+PyTube currently has a lot of errors that have not been fixed in any sort of stable build. Here are some common
+ones you may come across, and Issue pages on how to get them fixed.
+
+### Keyword Error 'cipher'
+https://github.com/nficano/pytube/issues/642
 
 # Credits
 PyTube, by nficano https://github.com/nficano/pytube <br/>

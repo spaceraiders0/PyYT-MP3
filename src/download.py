@@ -24,6 +24,7 @@ parsedArgs = argParser.parse_args()
 
 # Load up all the URLs and verify sources. 
 urlsToPass = verify(parsedArgs.source)
+
 vDownloader = Downloader(parsedArgs.o, urls=urlsToPass, logging=getattr(parsedArgs, "l"),
                          killAfterFinished=True, keepFile=parsedArgs.k)
 

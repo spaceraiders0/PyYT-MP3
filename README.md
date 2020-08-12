@@ -36,7 +36,7 @@ install FFmpeg. <br>
 This script was originally, mostly created on Windows, so I implemented functionality to install
 FFmpeg for you, but only to the project's directory. That is, if there isn't already an FFmpeg
 installation detected. This is exclusive to Windows, however. If you'd like to have it be usable
-globally across windows, you can use manually download, and add FFmpeg to your path from this URL:
+globally across Windows, you can use manually download, and add FFmpeg to your path from this URL:
 https://www.ffmpeg.org
 
 ### Linux

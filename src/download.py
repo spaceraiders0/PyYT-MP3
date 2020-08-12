@@ -5,7 +5,6 @@
 # contact: spaceraiders@protonmail.com
 # description: A small script to download Youtube videos.
 
-import pathlib
 import argparse
 from downloader import Downloader
 from validation import verify

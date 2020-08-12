@@ -61,7 +61,7 @@ ones you may come across, and Issue pages on how to get them fixed.
 
 If you'd like to download the specific GitHub repository because the one from PyPi doesn't work, run this command:
 ```
-pip3 install git+https://github.com/spaceraiders0/PyYT-MP3
+pip3 install git+https://github.com/nficano/pytube
 ```
 
 ### Keyword Error 'cipher'

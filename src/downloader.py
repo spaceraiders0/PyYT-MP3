@@ -12,7 +12,7 @@ import textwrap
 import requests
 import validators
 from pathlib import Path
-from pytube import YouTube
+from pytube import YouTube, exceptions 
 from zipfile import ZipFile
 
 # Path definitions
@@ -226,18 +226,22 @@ class Downloader():
 
                 # Start downloading the newest video
                 if len(self.__urlStream) > 0:
-                    video = YouTube(self.__urlStream[0])
-                    # Check if we're converting something to another format, download a low-res
-                    # version so it takes less time to convert.
+                    try:
+                        video = YouTube(self.__urlStream[0])
+                        # Check if we're converting something to another format, download a low-res
+                        # version so it takes less time to convert.
 
-                    videoStream = video.streams.first() if not convEnabled else video.streams.get_lowest_resolution()
-                    videoTitle = video.player_response["videoDetails"]["title"]
-                    videoPath = videoStream.download(output_path=self.outputFolder, filename=videoTitle)
+                        videoStream = video.streams.first() if not convEnabled else video.streams.get_lowest_resolution()
+                        videoTitle = video.player_response["videoDetails"]["title"]
+                        videoPath = videoStream.download(output_path=self.outputFolder, filename=videoTitle)
 
-                    if self.__conversionParams.get("enabled") and ffmpegExists():
-                        self.__convert(videoPath)
+                        if self.__conversionParams.get("enabled") and ffmpegExists():
+                            self.__convert(videoPath)
 
-                    print(f"Downloaded video {videoTitle}")
+                        print(f"Downloaded video {videoTitle}")
+                    except (KeyError, exceptions.RegexMatchError):
+                        print("Invalid URL.")
+
                     self.__urlStream.pop(0)
                 else:
                     if self.killAfterFinished:

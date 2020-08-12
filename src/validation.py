@@ -46,8 +46,8 @@ def is_url(url):
     :rtype: bool
     """
 
-    builtUrl = build_url(url)
-    return bool(validators.url(builtUrl)), builtUrl
+    built_url = build_url(url)
+    return bool(validators.url(built_url)), built_url
 
 
 def is_playlist(url):
@@ -61,9 +61,9 @@ def is_playlist(url):
     :rtype: bool
     """
 
-    isValidURL, url = is_url(url)
+    is_valid_url, url = is_url(url)
 
-    return isValidURL and url.startswith("https://www.youtube.com/playlist?list=")
+    return is_valid_url and url.startswith("https://www.youtube.com/playlist?list=")
 
 
 def is_video(url):
@@ -77,9 +77,9 @@ def is_video(url):
     :rtype: bool
     """
 
-    isValidURL, url = is_url(url)
+    is_valid_url, url = is_url(url)
 
-    return isValidURL and url.startswith("https://www.youtube.com/watch?v=")
+    return is_valid_url and url.startswith("https://www.youtube.com/watch?v=")
 
 
 def is_file(path):
@@ -99,32 +99,33 @@ def is_file(path):
     return path.exists() and path.is_file()
 
 
-def verify(url):
+def verify(urls):
     """Goes through the process of verifying the given URL
     and loads the URL into a list of URLs based off the given
     input.
 
-    :param url: The URL (or path) of the URL.
-    :type url: Path-Like, str
+    :param urls: The URL (or path) to draw videos from..
+    :type urls: Path-Like, str
     :return: The list of URLs for the Downloader to use.
     :rtype: list
     """
 
     url_storage = []
 
-    # Build up the list containing all the URLs.
-    if is_playlist(url):
-        url_storage = Playlist(url).video_urls
-    elif is_video(url):
-        url_storage.append(url)
-    elif is_file(Path(url)):
-        # Load up URLs from a file, and verify that they're valid.
-        with open(Path(url), "r") as urlFile:
-            url_list = urlFile.readlines()
+    for url in urls:
+        # Build up the list containing all the URLs.
+        if is_playlist(url):
+            url_storage = Playlist(url).video_urls
+        elif is_video(url):
+            url_storage.append(url)
+        elif is_file(Path(url)):
+            # Load up URLs from a file, and verify that they're valid.
+            with open(Path(url), "r") as urlFile:
+                url_list = urlFile.readlines()
 
-            for url_line in url_list:
-                if is_url(url_line)[0]:
-                    url_storage.append(url_line)
+                for url_line in url_list:
+                    if is_url(url_line)[0]:
+                        url_storage.append(url_line)
 
     return url_storage
 

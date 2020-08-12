@@ -1,7 +1,7 @@
 # validation.py
 # created by: spaceraiders
 # contact: spaceraiders@protonmail.com
-# description:  Includes functions used for validation of URLs that're
+# description: Includes functions used for validation of URLs that're
 # used by download.py to verify if the commandline argument "Source" is
 # a valid URL. If it isn't, it will attempt to "build" the URL, and switch
 # it up with something else. Example:
@@ -128,4 +128,3 @@ def verify(urls):
                         url_storage.append(url_line)
 
     return url_storage
-

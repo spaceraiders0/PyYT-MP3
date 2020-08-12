@@ -12,7 +12,7 @@ import textwrap
 import requests
 import validators
 from pathlib import Path
-from pytube import YouTube, exceptions 
+from pytube import YouTube, exceptions
 from zipfile import ZipFile
 
 # Path definitions

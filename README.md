@@ -45,6 +45,9 @@ directly from pip. It appears to be more stable, so I suggest you to do the same
 PyTube currently has a lot of errors that have not been fixed in any sort of stable build. Here are some common
 ones you may come across, and Issue pages on how to get them fixed.
 
+If you'd like to download the specific GitHub repository because the one from PyPi doesn't work, run this command:
+pip3 install git+https://github.com/spaceraiders0/PyYT-MP3
+
 ### Keyword Error 'cipher'
 https://github.com/nficano/pytube/issues/642
 

@@ -6,25 +6,21 @@
 
 import os
 import sys
-import time
 import shutil
 import logging
+import textwrap
 import requests
 import validators
-import textwrap
 from pathlib import Path
+from pytube import YouTube
 from zipfile import ZipFile
-from datetime import datetime as dt
-from pytube import YouTube, Playlist
 
 # Path definitions
-ROOT_DIR = Path("../")
+ROOT_DIR = Path(__file__).parent.absolute().parent
 FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20200522-38490cb-win64-static.zip"
-FFMPEG_INSTALLATION_DIR = ROOT_DIR / Path("ffmpeg")
-ZIPPED_FFMPEG_PATH = FFMPEG_INSTALLATION_DIR / Path("ffmpeg.zip")
-FFMPEG_BIN = FFMPEG_INSTALLATION_DIR / Path("bin")
+INSTALLATION_DIRECTORY = ROOT_DIR / Path("ffmpeg")
 LOGGER_OUT = ROOT_DIR / Path("log")
-AUDIO_FORMATS = ("mp3", "wav", "ogg")
+
 loggersToDisable = (
     "pytube.helpers", "pytube.extract",
     "pytube.cipher", "pytube.__main__",
@@ -36,54 +32,62 @@ for loggerName in loggersToDisable:
     loggerDisabling = logging.getLogger(loggerName)
     loggerDisabling.setLevel(50)
 
+
 def ffmpegExists():
-    ffmpegExistsInRoot = os.path.exists(FFMPEG_INSTALLATION_DIR)
+    """Checks whether an FFmpeg installation can be located
+    in the root directory, or somewhere in the PATH.
+
+    :return: The command to be used to invoke FFmpeg, or False to signify
+    that there was no installation found.
+    :rtype: str, bool
+    """
+    ffmpegExistsInRoot = INSTALLATION_DIRECTORY.exists()
     ffmpegExistsInPath = shutil.which("ffmpeg")
 
-    if not ffmpegExistsInPath and not ffmpegExistsInRoot:
-        return False
-    return True
-    
+    # Give different commands that're used to actually invoke FFmpeg.
+    if ffmpegExistsInRoot:
+        return str(ROOT_DIR / Path("ffmpeg.exe"))
+    elif ffmpegExistsInPath:
+        return "ffmpeg"
+
+    return False
+
+
 def setup():
-    """Currently, all this function does is setup the envionment
-        for the program to execute. It does:
-        - Validation of an FFmpeg Installation
-        - Adding this to the path (optional)
+    """Sets up FFmpeg by extracting the exe from a zipfile containing
+    the FFmpeg installation.
     """
-    # Create and download FFmpeg, and set up the files if there is no
-    # EXE in the path, or in the root project directory.
-    if not ffmpegExists:
-        os.mkdir(FFMPEG_INSTALLATION_DIR)
-        zipped_data = requests.get(FFMPEG_URL)
 
-        # Write the bytes of the downloaded .ZIP to a new file.
-        with open(ZIPPED_FFMPEG_PATH, "wb") as zipfile_source:
-            for chunk in zipped_data.iter_content(chunk_size=255):
-                zipfile_source.write(chunk)
-        
-        # Extract the .ZIP's contents.
-        with ZipFile(ZIPPED_FFMPEG_PATH) as zipped_file:
-            zipped_file.extractall(path=FFMPEG_INSTALLATION_DIR)
+    if not ffmpegExists():
+        ZIPFILE_LOCATION = ROOT_DIR / Path("ffmpeg.zip")
+        ffmpeg_zip = requests.get(FFMPEG_URL)
 
-        # Extract the contents of the subfolder, where all the actual files are.
-        subfolder_name = os.path.split(FFMPEG_URL)[1].strip(".zip") # This will remove all characters containing . z i and p in them.
-        subfolder = FFMPEG_INSTALLATION_DIR / Path(subfolder_name)
+        # Write individual chunks of bytes to a new zip file.
+        with open(ZIPFILE_LOCATION, "wb") as new_zip_file:
+            for chunk in ffmpeg_zip.iter_content(chunk_size=255):
+                new_zip_file.write(chunk)
 
-        for dirpath, dirnames, filenames in os.walk(subfolder):
-            # loop through a list of all the items instead of two
-            # seperate loops for files and directories
-            directory_items = dirnames + filenames
+        # Extract the ZipFile
+        with ZipFile(ZIPFILE_LOCATION) as zip_file:
+            zip_file.extractall(INSTALLATION_DIRECTORY)
 
-            # Move all the files and folders
-            for item in directory_items:
-                shutil.move(str(subfolder / Path(item)),
-                            str(FFMPEG_INSTALLATION_DIR))
+        # Extract the exe from the folder based off the stem
+        # (the actual name of the URL without the file extension),
+        shutil.move(str(INSTALLATION_DIRECTORY / Path(f"{Path(FFMPEG_URL).stem}/bin/ffmpeg.exe")), ROOT_DIR)
 
-        # No need for the original .ZIP file, or the extracted folder.
-        os.remove(ZIPPED_FFMPEG_PATH)
-        os.rmdir(subfolder)
+        # Recursively go through all files in ffmpeg, and delete them.
+        Path(ROOT_DIR / Path("ffmpeg.zip")).unlink()
+        shutil.rmtree(ROOT_DIR / Path("ffmpeg"))
+
 
 class Downloader():
+    """The Downloader object utilizes PyTube's video downloading to
+    create a stream of videos that can be downloaded and converted
+    into a specified format (assuming you have FFmpeg installed), and
+    to a special location. It can be started, stopped, and paused, and
+    can even have the stream it's using be modified as it's running.
+    """
+
     __conversionParams = {}
     __logger = None
     __state = "Paused"
@@ -92,11 +96,7 @@ class Downloader():
     def __init__(self, outputFolder=".", urls=[], logging=False, killAfterFinished=False,
                  keepFile=False):
 
-        """Initiates the Downloader object.
-
-            Args:
-                outputFolder (string): The folder to output the final downloaded,
-                or converted file.
+        """Initializes the downloader object.
         """
 
         self.outputFolder = outputFolder
@@ -105,85 +105,74 @@ class Downloader():
         self.killAfterFinished = killAfterFinished
         self.keepFile = keepFile
 
-    def __convert(self, pathToFile):
-        """Takes in a file from pathToFile, and then
+    def __convert(self, pathToFile: str):
+        """Does the actual work to convert a file to a specified format.
+        This method is only called when FFmpeg is installed, inside the
+        run method.
+
+        :param pathToFile: The path of the file to convert.
+        :type pathToFile: str
         """
+
+        cmdToUse = ffmpegExists()
 
         # Create a path without any extension.
         convertTo = self.__conversionParams["convertTo"]
-        truePath = Path(pathToFile).parents[0] / Path(pathToFile).stem        
-        os.system(f'ffmpeg -i "{truePath}.mp4" "{truePath}.{convertTo}" -loglevel warning')
+        truePath = Path(pathToFile).parents[0] / Path(pathToFile).stem
+        os.system(f'{cmdToUse} -i "{truePath}.mp4" "{truePath}.{convertTo}" -loglevel warning')
 
         if not self.keepFile:
             os.remove(f"{truePath}.mp4")
-        
-    def __log(self, message, level):
-        if self.__logger:
-            classLogger = self.__logger
 
-            levels = {
-                10: classLogger.debug,
-                20: classLogger.info,
-                30: classLogger.warning,
-                40: classLogger.error,
-                50: classLogger.critical
-            }
+    def add_to_stream(self, urls: list):
+        """Takes in a single URL, or list of them, and filters them
+        for invalid URLs, then appends them to the stream.
 
-            if levels.get(level):
-                levels[level](message)
-
-    def add_to_stream(self, url):
-        """Takes in a single URL, or list of URLs, and
-            appends them to this Downloader stream. Validates
-            that all URLs are properly formatted.
-
-            Args:
-                url (string, list): The URL(s) to add to the
-                Downloader's stream.
+        :param url: A list of URLs to be appended to the stream.
+        :type url: list
         """
 
-        urlsToAdd = list(url)
-
         # Filter out any invalid URLs
-        for url in urlsToAdd:
-            if not validators.url(url):
-                urlsToAdd.remove(url)
+        for url in urls:
+            if validators.url(url):
+                self.__urlStream += url
 
-        self.__urlStream += urlsToAdd
+    def remove_from_stream(self, url: str):
+        """Removes a URL from the stream.
 
-    def remove_from_stream(self, url):
-        """Takes in a single URL to remove from the stream
-            of URLs used by the Downloader.
-
-            Args:
-                url (string): The URL to remove from the stream.
+        :param url: The URL to remove from the stream.
+        :type url: str
         """
 
         if url in self.__urlStream:
             self.__urlStream.remove(url)
 
-    def set_state(self, state):
+    def set_state(self, state: str):
+        """Sets the current state of the Downloader.
+
+        :param state: The state to change the Downloader to.
+        :type state: str
+        :raises NameError: Invalid state provided.
+        """
+
         if state in self.__states:
-            self.__log(f"Set state of downloader to {state}.", 20)
             self.__state = state
         else:
-            self.__log(f"Attempt to set invalid state, {state}.", 10)
             raise NameError("Invalid state")
 
     def get_state(self):
-        """Returns the current state of the downloader.
+        """Returns the current state of the Downloader.
 
-            Returns:
-                string: The state of the downloader.
+        :return: The state of the downloader.
+        :rtype: str
         """
 
         return self.__state
 
     def start_stream(self):
-        """Starts the stream.
+        """Starts the downloader.
         """
 
-        self.__log("Stream started.", 10)
         self.set_state("Playing")
 
     def pause_stream(self):
@@ -194,32 +183,35 @@ class Downloader():
             the file has finished converting.
         """
 
-        self.__log("Stream paused.", 10)
         self.set_state("Paused")
 
     def stop_stream(self):
         """Stops the stream.
         """
 
-        self.__log("Stream stopped..", 10)
         self.set_state("Stopped")
 
     def get_stream(self):
-        """Returns the current stream the Downloader is
-           using.
+        """Returns the current list of videos being downloaded.
+
+        :return: List of URLs being downloaded.
+        :rtype: list
         """
 
         return self.__urlStream
 
     def run(self):
-        print(ffmpegExists())
+        """Starts downloading videos from the URL stream.
+        Also prompts the user to install FFmpeg if there is no
+        FFmpeg installation detected.
+        """
 
         # Prompt the user to install FFmpeg (assuming they're on windows).
         if not ffmpegExists():
             print(textwrap.dedent("""\
             No FFmpeg installation detected. If you gave a format
             for videos to be converted to, they will not be converted.\n"""))
-            if sys.platform == "win32": 
+            if sys.platform == "win32":
                 install_ffmpeg = input("No FFmpeg installation detected. Install? (Y/N)")
 
                 if install_ffmpeg.lower() == "y":
@@ -230,23 +222,21 @@ class Downloader():
 
             # If it's unpaused, it wont do anything until it's unpaused.
             if self.get_state() == "Playing":
-                self.__log("Resuming downloader stream.", 20)
-                convEnabled = self.__conversionParams.get("enabled") 
+                convEnabled = self.__conversionParams.get("enabled")
 
                 # Start downloading the newest video
                 if len(self.__urlStream) > 0:
                     video = YouTube(self.__urlStream[0])
                     # Check if we're converting something to another format, download a low-res
                     # version so it takes less time to convert.
-                    
-                    videoStream = video.streams.first() if not convEnabled else video.streams.get_lowest_resolution() 
+
+                    videoStream = video.streams.first() if not convEnabled else video.streams.get_lowest_resolution()
                     videoTitle = video.player_response["videoDetails"]["title"]
                     videoPath = videoStream.download(output_path=self.outputFolder, filename=videoTitle)
-                    self.__log(f"Downloaded video {videoTitle} to path {videoPath}", 20)
 
                     if self.__conversionParams.get("enabled") and ffmpegExists():
                         self.__convert(videoPath)
-                   
+
                     print(f"Downloaded video {videoTitle}")
                     self.__urlStream.pop(0)
                 else:
@@ -255,7 +245,6 @@ class Downloader():
                     else:
                         self.pause_stream()
         else:
-            self.__log("Downloader has been killed during runtime.", 20)
             self.set_state("Dead")
 
     def config_conversion(self, enabled=False, convertTo="mp3"):
@@ -273,29 +262,3 @@ class Downloader():
             "enabled": enabled,
             "convertTo": convertTo,
         }
-
-        self.__log("Successfully initiated conversion!", 20)
-
-    def config_logger(self, loggingdDir="../log", loggerLevel=0):
-        """Configures and sets up paramaters for the logging
-            of this Downloader instance.
-
-        Args:
-            enabled (bool, optional): Whether or not logging is allowed. Defaults to False.
-            loggingdDir (str, optional): The place where log files will be stored. Defaults to "../log".
-            loggerLevel (int, optional): The minimum level to log. Defaults to 0.
-        """
-
-        logging.basicConfig(
-            filename=str(Path(loggingdDir) / Path(dt.now().strftime("%Y-%m-%d"))),
-            format="%(name)s %(levelname)s %(asctime)s - %(message)s",
-            level=loggerLevel
-        )
-
-        self.__logger = logging.getLogger(__name__)
-        self.__log("Logger successfully initiated.", 10)
-
-        # Make the logging directory if one doesn't exist.
-        if not Path(loggingdDir).exists():
-            logger_path = Path(loggingdDir).mkdir()
-  

@@ -22,7 +22,7 @@ argParser.add_argument("-k", help="Whether or not to keep the downloaded video a
 
 parsedArgs = argParser.parse_args()
 
-# Load up all the URLs and verify sources. 
+# Load up all the URLs and verify sources.
 urlsToPass = verify(parsedArgs.source)
 
 vDownloader = Downloader(parsedArgs.o, urls=urlsToPass, logging=getattr(parsedArgs, "l"),

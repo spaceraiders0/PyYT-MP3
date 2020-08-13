@@ -18,12 +18,12 @@ argParser.add_argument("-o", help="The output directory. Defaults to the Current
 argParser.add_argument("-k", help="Whether or not to keep the downloaded video after conversion.",
                        action="store_true")
 
+
 parsedArgs = argParser.parse_args()
 
 # Load up all the URLs and verify sources.
 urlsToPass = verify(parsedArgs.source)
-vDownloader = Downloader(parsedArgs.o, urls=urlsToPass, logging=getattr(parsedArgs, "l"),
-                         killAfterFinished=True, keepFile=parsedArgs.k)
+vDownloader = Downloader(parsedArgs.o, urls=urlsToPass, killAfterFinished=True, keepFile=parsedArgs.k)
 vDownloader.start_stream()
 
 # Configure the Downloader's conversion (if it's specified)

@@ -39,6 +39,14 @@ installation detected. This is exclusive to Windows, however. If you'd like to h
 globally across Windows, you can use manually download, and add FFmpeg to your path from this URL:
 https://www.ffmpeg.org
 
+You can also add a Shebang to make it executable by just invoking the file in the command-line without
+having to specify an interpreter. Simply change:
+```
+#!/usr/bin/python3
+```
+
+to #!path_to_python.exe
+
 ### Linux
 If you're on Linux, you're out of luck on getting FFmpeg automatically installed by this script.
 This is mostly because you can easily install it by using your package manager.

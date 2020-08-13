@@ -212,7 +212,7 @@ class Downloader():
             No FFmpeg installation detected. If you gave a format
             for videos to be converted to, they will not be converted.\n"""))
             if sys.platform == "win32":
-                install_ffmpeg = input("No FFmpeg installation detected. Install? (Y/N)")
+                install_ffmpeg = input("No FFmpeg installation detected. Install? (Y/N): ")
 
                 if install_ffmpeg.lower() == "y":
                     setup()

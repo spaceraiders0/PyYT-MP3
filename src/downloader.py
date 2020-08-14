@@ -19,6 +19,7 @@ from zipfile import ZipFile
 ROOT_DIR = Path(__file__).parent.absolute().parent
 FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20200522-38490cb-win64-static.zip"
 INSTALLATION_DIRECTORY = ROOT_DIR / Path("ffmpeg")
+REMEMBER_FFMPEG = ROOT_DIR / Path(".remember_ffmpeg")
 LOGGER_OUT = ROOT_DIR / Path("log")
 
 loggersToDisable = (
@@ -206,16 +207,26 @@ class Downloader():
         FFmpeg installation detected.
         """
 
-        # Prompt the user to install FFmpeg (assuming they're on windows).
-        if not ffmpegExists():
+        # Prompt the user to install FFmpeg (assuming they're on windows), and they haven't asked
+        # to not be prompted anymore.
+        if not ffmpegExists() and not REMEMBER_FFMPEG.exists():
             print(textwrap.dedent("""\
             No FFmpeg installation detected. If you gave a format
             for videos to be converted to, they will not be converted.\n"""))
-            if sys.platform == "win32":
-                install_ffmpeg = input("No FFmpeg installation detected. Install? (Y/N): ")
 
-                if install_ffmpeg.lower() == "y":
+            if sys.platform == "win32":
+                install_ffmpeg = input("No FFmpeg installation detected. Install? (Y/N/NR(emember)): ").lower()
+
+                if install_ffmpeg == "y":
                     setup()
+                elif install_ffmpeg == "nr":
+                    print(textwrap.dedent("""\
+                    I will remember this choice. If you wish to see this prompt again, delete the
+                    .ffmpeg_remember file in the root directory.\n"""))
+
+                    REMEMBER_FFMPEG.touch()
+                    os.popen(f"attrib +h {str(REMEMBER_FFMPEG)}")
+
 
         # Once stopped, the downloader will be "dead."
         while self.get_state() != "Stopped":

@@ -42,11 +42,12 @@ def ffmpegExists():
     that there was no installation found.
     :rtype: str, bool
     """
-    ffmpegExistsInRoot = INSTALLATION_DIRECTORY.exists()
+
+    ffmpegExistsInRoot = ROOT_DIR / Path("ffmpeg.exe")
     ffmpegExistsInPath = shutil.which("ffmpeg")
 
     # Give different commands that're used to actually invoke FFmpeg.
-    if ffmpegExistsInRoot:
+    if ffmpegExistsInRoot.exists():
         return str(ROOT_DIR / Path("ffmpeg.exe"))
     elif ffmpegExistsInPath:
         return "ffmpeg"
@@ -209,7 +210,7 @@ class Downloader():
 
         # Prompt the user to install FFmpeg (assuming they're on windows), and they haven't asked
         # to not be prompted anymore.
-        if not ffmpegExists() and not REMEMBER_FFMPEG.exists():
+        if not ffmpegExists():
             print(textwrap.dedent("""\
             No FFmpeg installation detected. If you gave a format
             for videos to be converted to, they will not be converted.\n"""))

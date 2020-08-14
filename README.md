@@ -25,6 +25,8 @@ This is a quick explanation of each argument:
 executed in.
 - k: Whether or not, during conversion, the videos should be kept. With this ticked,
 you get both the MP4, and the format you converted the video to.
+- s: Sets up FFmpeg during before any downloading is done (this will not execute if
+FFmpeg is already installed.)
 
 # Installation
 There are a few ways of setting this up, since it doesn't necessarily work out of the box.

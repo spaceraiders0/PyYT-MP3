@@ -223,7 +223,8 @@ class Downloader():
                 elif install_ffmpeg == "nr":
                     print(textwrap.dedent("""\
                     I will remember this choice. If you wish to see this prompt again, delete the
-                    .ffmpeg_remember file in the root directory.\n"""))
+                    .ffmpeg_remember file in the root directory, or execute the program with the
+                    flag -s.\n"""))
 
                     REMEMBER_FFMPEG.touch()
                     os.popen(f"attrib +h {str(REMEMBER_FFMPEG)}")

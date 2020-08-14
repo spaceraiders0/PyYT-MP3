@@ -25,6 +25,8 @@ parsedArgs = argParser.parse_args()
 if parsedArgs.s and not ffmpegExists():
     print("Setting up FFmpeg.\n")
     setup()
+elif ffmpegExists():
+    print("FFmpeg already installed.\n")
 
 # Load up all the URLs and verify sources.
 urlsToPass = verify(parsedArgs.source)

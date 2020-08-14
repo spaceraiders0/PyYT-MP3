@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!C:\Users\space\AppData\Local\Programs\Python\Python38-32\python.exe
 
 # main.py
 # created by: spaceraiders
@@ -25,7 +25,7 @@ parsedArgs = argParser.parse_args()
 if parsedArgs.s and not ffmpegExists():
     print("Setting up FFmpeg.\n")
     setup()
-elif not parsedArgs.s and ffmpegExists():
+elif parsedArgs.s and ffmpegExists():
     print("FFmpeg already installed.\n")
 
 # Load up all the URLs and verify sources.

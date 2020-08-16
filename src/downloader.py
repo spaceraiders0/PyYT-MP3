@@ -10,7 +10,6 @@ import shutil
 import textwrap
 import requests
 import validators
-import multiprocessing
 from pathlib import Path
 from pytube import YouTube, exceptions
 from zipfile import ZipFile

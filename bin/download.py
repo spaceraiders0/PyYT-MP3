@@ -5,10 +5,15 @@
 # contact: spaceraiders@protonmail.com
 # description: A small script to download Youtube videos.
 
+import sys
+
+sys.path.append("../src")
+
 import argparse
 from threading import Thread
 from validation import verify
 from downloader import Downloader, ffmpegExists, setup, live
+
 
 # Add all the arguments (optional, or otherwise)
 argParser = argparse.ArgumentParser(description="A script to download Youtube videos.")

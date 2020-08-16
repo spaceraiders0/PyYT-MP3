@@ -7,10 +7,10 @@
 import os
 import sys
 import shutil
-import logging
 import textwrap
 import requests
 import validators
+import multiprocessing
 from pathlib import Path
 from pytube import YouTube, exceptions
 from zipfile import ZipFile
@@ -20,66 +20,6 @@ ROOT_DIR = Path(__file__).parent.absolute().parent
 FFMPEG_URL = "https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20200522-38490cb-win64-static.zip"
 INSTALLATION_DIRECTORY = ROOT_DIR / Path("ffmpeg")
 REMEMBER_FFMPEG = ROOT_DIR / Path(".remember_ffmpeg")
-LOGGER_OUT = ROOT_DIR / Path("log")
-
-loggersToDisable = (
-    "pytube.helpers", "pytube.extract",
-    "pytube.cipher", "pytube.__main__",
-    "pytube.streams"
-)
-
-# Disable unwanted loggers from Pytube.
-for loggerName in loggersToDisable:
-    loggerDisabling = logging.getLogger(loggerName)
-    loggerDisabling.setLevel(50)
-
-
-def ffmpegExists():
-    """Checks whether an FFmpeg installation can be located
-    in the root directory, or somewhere in the PATH.
-
-    :return: The command to be used to invoke FFmpeg, or False to signify
-    that there was no installation found.
-    :rtype: str, bool
-    """
-
-    ffmpegExistsInRoot = ROOT_DIR / Path("ffmpeg.exe")
-    ffmpegExistsInPath = shutil.which("ffmpeg")
-
-    # Give different commands that're used to actually invoke FFmpeg.
-    if ffmpegExistsInRoot.exists():
-        return str(ROOT_DIR / Path("ffmpeg.exe"))
-    elif ffmpegExistsInPath:
-        return "ffmpeg"
-
-    return False
-
-
-def setup():
-    """Sets up FFmpeg by extracting the exe from a zipfile containing
-    the FFmpeg installation.
-    """
-
-    if not ffmpegExists():
-        ZIPFILE_LOCATION = ROOT_DIR / Path("ffmpeg.zip")
-        ffmpeg_zip = requests.get(FFMPEG_URL)
-
-        # Write individual chunks of bytes to a new zip file.
-        with open(ZIPFILE_LOCATION, "wb") as new_zip_file:
-            for chunk in ffmpeg_zip.iter_content(chunk_size=255):
-                new_zip_file.write(chunk)
-
-        # Extract the ZipFile
-        with ZipFile(ZIPFILE_LOCATION) as zip_file:
-            zip_file.extractall(INSTALLATION_DIRECTORY)
-
-        # Extract the exe from the folder based off the stem
-        # (the actual name of the URL without the file extension),
-        shutil.move(str(INSTALLATION_DIRECTORY / Path(f"{Path(FFMPEG_URL).stem}/bin/ffmpeg.exe")), ROOT_DIR)
-
-        # Recursively go through all files in ffmpeg, and delete them.
-        Path(ROOT_DIR / Path("ffmpeg.zip")).unlink()
-        shutil.rmtree(ROOT_DIR / Path("ffmpeg"))
 
 
 class Downloader():
@@ -96,7 +36,7 @@ class Downloader():
     __states = ("Paused", "Stopped", "Playing", "Dead")
 
     def __init__(self, outputFolder=".", urls=[], logging=False, killAfterFinished=False,
-                 keepFile=False):
+                 keepFile=False, silent=False):
 
         """Initializes the downloader object.
         """
@@ -106,6 +46,7 @@ class Downloader():
         self.isLoggingAllowed = logging
         self.killAfterFinished = killAfterFinished
         self.keepFile = keepFile
+        self.silent = silent
 
     def __convert(self, pathToFile: str):
         """Does the actual work to convert a file to a specified format.
@@ -137,7 +78,7 @@ class Downloader():
         # Filter out any invalid URLs
         for url in urls:
             if validators.url(url):
-                self.__urlStream += url
+                self.__urlStream.append(url)
 
     def remove_from_stream(self, url: str):
         """Removes a URL from the stream.
@@ -226,24 +167,24 @@ class Downloader():
                     .ffmpeg_remember file in the root directory, or execute the program with the
                     flag -s.\n"""))
 
+                    # Make a hidden file for memory
                     REMEMBER_FFMPEG.touch()
                     os.popen(f"attrib +h {str(REMEMBER_FFMPEG)}")
-
 
         # Once stopped, the downloader will be "dead."
         while self.get_state() != "Stopped":
 
             # If it's unpaused, it wont do anything until it's unpaused.
-            if self.get_state() == "Playing":
+            if self.get_state() in ("Playing", "Paused"):
                 convEnabled = self.__conversionParams.get("enabled")
 
                 # Start downloading the newest video
                 if len(self.__urlStream) > 0:
                     try:
                         video = YouTube(self.__urlStream[0])
+
                         # Check if we're converting something to another format, download a low-res
                         # version so it takes less time to convert.
-
                         videoStream = video.streams.first() if not convEnabled else video.streams.get_lowest_resolution()
                         videoTitle = video.player_response["videoDetails"]["title"]
                         videoPath = videoStream.download(output_path=self.outputFolder, filename=videoTitle)
@@ -251,16 +192,16 @@ class Downloader():
                         if self.__conversionParams.get("enabled") and ffmpegExists():
                             self.__convert(videoPath)
 
-                        print(f"Downloaded video {videoTitle}")
+                        if not self.silent:
+                            print(f"Downloaded video {videoTitle}")
                     except (KeyError, exceptions.RegexMatchError):
-                        print("Invalid URL.")
+                        if not self.silent:
+                            print("Invalid URL.")
 
                     self.__urlStream.pop(0)
-                else:
-                    if self.killAfterFinished:
-                        self.stop_stream()
-                    else:
-                        self.pause_stream()
+                elif self.killAfterFinished:
+                    self.stop_stream()
+
         else:
             self.set_state("Dead")
 
@@ -279,3 +220,56 @@ class Downloader():
             "enabled": enabled,
             "convertTo": convertTo,
         }
+
+
+def live(downloader: Downloader):
+    while True:
+        downloader.add_to_stream([input("URL: ")])
+
+
+def ffmpegExists():
+    """Checks whether an FFmpeg installation can be located
+    in the root directory, or somewhere in the PATH.
+
+    :return: The command to be used to invoke FFmpeg, or False to signify
+    that there was no installation found.
+    :rtype: str, bool
+    """
+
+    ffmpegExistsInRoot = ROOT_DIR / Path("ffmpeg.exe")
+    ffmpegExistsInPath = shutil.which("ffmpeg")
+
+    # Give different commands that're used to actually invoke FFmpeg.
+    if ffmpegExistsInRoot.exists():
+        return str(ROOT_DIR / Path("ffmpeg.exe"))
+    elif ffmpegExistsInPath:
+        return "ffmpeg"
+
+    return False
+
+
+def setup():
+    """Sets up FFmpeg by extracting the exe from a zipfile containing
+    the FFmpeg installation.
+    """
+
+    if not ffmpegExists():
+        ZIPFILE_LOCATION = ROOT_DIR / Path("ffmpeg.zip")
+        ffmpeg_zip = requests.get(FFMPEG_URL)
+
+        # Write individual chunks of bytes to a new zip file.
+        with open(ZIPFILE_LOCATION, "wb") as new_zip_file:
+            for chunk in ffmpeg_zip.iter_content(chunk_size=255):
+                new_zip_file.write(chunk)
+
+        # Extract the ZipFile
+        with ZipFile(ZIPFILE_LOCATION) as zip_file:
+            zip_file.extractall(INSTALLATION_DIRECTORY)
+
+        # Extract the exe from the folder based off the stem
+        # (the actual name of the URL without the file extension),
+        shutil.move(str(INSTALLATION_DIRECTORY / Path(f"{Path(FFMPEG_URL).stem}/bin/ffmpeg.exe")), ROOT_DIR)
+
+        # Recursively go through all files in ffmpeg, and delete them.
+        Path(ROOT_DIR / Path("ffmpeg.zip")).unlink()
+        shutil.rmtree(ROOT_DIR / Path("ffmpeg"))

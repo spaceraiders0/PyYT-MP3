@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 # main.py
 # created by: spaceraiders
@@ -6,13 +6,15 @@
 # description: A small script to download Youtube videos.
 
 import argparse
+from threading import Thread
 from validation import verify
-from downloader import Downloader, ffmpegExists, setup
+from downloader import Downloader, ffmpegExists, setup, live
 
 # Add all the arguments (optional, or otherwise)
 argParser = argparse.ArgumentParser(description="A script to download Youtube videos.")
 argParser.add_argument("source", help="The place to extract URLs from. More info the README.md", nargs="*")
 argParser.add_argument("-f", help="The format to convert the videos to.")
+argParser.add_argument("-l", help="Whether or not to start the script in Live mode.", action="store_true")
 argParser.add_argument("-s", help="Flag to setup FFmpeg.", action="store_true")
 argParser.add_argument("-o", help="The output directory. Defaults to the Current Working Directory.",
                        default=".")
@@ -30,7 +32,8 @@ elif parsedArgs.s and ffmpegExists():
 
 # Load up all the URLs and verify sources.
 urlsToPass = verify(parsedArgs.source)
-vDownloader = Downloader(parsedArgs.o, urls=urlsToPass, killAfterFinished=True, keepFile=parsedArgs.k)
+vDownloader = Downloader(parsedArgs.o, urls=urlsToPass, killAfterFinished=not parsedArgs.l, keepFile=parsedArgs.k,
+                         silent=parsedArgs.l)
 vDownloader.start_stream()
 
 # Configure the Downloader's conversion (if it's specified)
@@ -38,6 +41,10 @@ convertTo = getattr(parsedArgs, "f")
 
 if convertTo:
     vDownloader.config_conversion(True, convertTo=convertTo)
+
+# Live mode
+if parsedArgs.l:
+    Thread(target=live, args=(vDownloader,)).start()
 
 # Start downloading & converting the videos.
 vDownloader.run()

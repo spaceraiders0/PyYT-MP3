@@ -27,6 +27,9 @@ executed in.
 you get both the MP4, and the format you converted the video to.
 - s: Sets up FFmpeg during before any downloading is done (this will not execute if
 FFmpeg is already installed.)
+- l: Sets up the program in a 'live' state. Allowing you to simply input URLs into the
+input box and have them downloaded. Will keep the options you provided, e.g -f mp3, for
+all files downloaded.
 
 # Installation
 There are a few ways of setting this up, since it doesn't necessarily work out of the box.

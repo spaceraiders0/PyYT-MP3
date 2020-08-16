@@ -1,4 +1,4 @@
-#!C:\Users\space\AppData\Local\Programs\Python\Python38-32\python.exe
+#!/usr/bin/python
 
 # main.py
 # created by: spaceraiders

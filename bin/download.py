@@ -6,14 +6,14 @@
 # description: A small script to download Youtube videos.
 
 import sys
+import argparse
 from pathlib import Path
+from threading import Thread
+from validation import verify
 
 # Add the src directory. If you have a cleaner method of doing this, please edit it.
 sys.path.append(str(Path(__file__).parent.absolute().parent / Path("src")))
 
-import argparse
-from threading import Thread
-from validation import verify
 from downloader import Downloader, ffmpegExists, setup, live
 
 

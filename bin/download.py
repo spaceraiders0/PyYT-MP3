@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!C:\Users\space\AppData\Local\Programs\Python\Python38-32\python.exe
 
 # main.py
 # created by: spaceraiders
@@ -6,8 +6,10 @@
 # description: A small script to download Youtube videos.
 
 import sys
+from pathlib import Path
 
-sys.path.append("../src")
+# Add the src directory. If you have a cleaner method of doing this, please edit it.
+sys.path.append(str(Path(__file__).parent.absolute().parent / Path("src")))
 
 import argparse
 from threading import Thread

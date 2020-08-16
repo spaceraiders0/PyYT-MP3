@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!C:\Users\space\AppData\Local\Programs\Python\Python38-32\python.exe
 
 # main.py
 # created by: spaceraiders
@@ -9,11 +9,11 @@ import sys
 import argparse
 from pathlib import Path
 from threading import Thread
-from validation import verify
 
 # Add the src directory. If you have a cleaner method of doing this, please edit it.
 sys.path.append(str(Path(__file__).parent.absolute().parent / Path("src")))
 
+from validation import verify
 from downloader import Downloader, ffmpegExists, setup, live
 
 

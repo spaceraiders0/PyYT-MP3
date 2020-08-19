@@ -6,6 +6,7 @@
 
 import os
 import sys
+import json
 import shutil
 import textwrap
 import requests
@@ -193,9 +194,9 @@ class Downloader():
 
                         if not self.silent:
                             print(f"Downloaded video {videoTitle}")
-                    except (KeyError, exceptions.RegexMatchError):
+                    except (KeyError, exceptions.RegexMatchError, json.decoder.JSONDecodeError):
                         if not self.silent:
-                            print("Invalid URL.")
+                            print(f"Could not download URL {self.__urlStream[0]}")
 
                     self.__urlStream.pop(0)
                 elif self.killAfterFinished:

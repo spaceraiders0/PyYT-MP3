@@ -80,6 +80,9 @@ pip3 install git+https://github.com/nficano/pytube
 ### Keyword Error 'cipher'
 https://github.com/nficano/pytube/issues/642
 
+### json.decoder.JSONDecodeError
+https://github.com/nficano/pytube/pull/726
+
 # Credits
 PyTube, by nficano https://github.com/nficano/pytube <br/>
 FFmpeg, by the FFmpeg Team: https://www.ffmpeg.org

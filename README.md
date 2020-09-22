@@ -1,7 +1,8 @@
 # PyYT-MP3
 PyYT-MP3 is a script I wrote that acts as a wrapper around the Python module PyTube. It takes an Object Oriented
 approach to handling the downloading of videos by allowing the use of individual "Downloader objects." These can be
-given individual sets of URLs to be converted to their own individual file formats using FFmpeg.
+given individual sets of URLs to be converted to their own individual file formats using FFmpeg, all through the
+download.py file in the src folder.
 
 # Motivations
 There were a few reasons behind the making of this script. Mostly for my own purposes, but someone else might find

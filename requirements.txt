@@ -5,7 +5,7 @@
 pytube3 == 9.6.4
 
 # PyYT-MP3/src/funcs.py: 11
-requests == 2.22.0
+requests == 2.31.0
 
 # PyYT-MP3/src/funcs.py: 12
 # PyYT-MP3/src/main.py: 37
